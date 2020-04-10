@@ -1,0 +1,5 @@
+<library path="nav2_rrtconnect_planner_plugin">
+	<class name="nav2_rrtconnect_planner/RRTConnect" type="nav2_rrtconnect_planner::RRTConnect" base_class_type="nav2_core::GlobalPlanner">
+	  <description>This is an example plugin which produces global path utilizing OMPL's implemented RRT Connect Algorithm.</description>
+	</class>
+</library>
