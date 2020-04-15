@@ -83,9 +83,6 @@ public:
     const geometry_msgs::msg::PoseStamped & start,
     const geometry_msgs::msg::PoseStamped & goal) override;
 
-  // This methods converts to OMPL state to PoseStamped format.
-  // geometry_msgs::msg::PoseStamped getPoseStampedFromState(const ompl::base::State & state);
-
 private:
   // TF buffer
   std::shared_ptr<tf2_ros::Buffer> tf_;
