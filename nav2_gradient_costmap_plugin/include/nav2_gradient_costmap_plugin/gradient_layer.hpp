@@ -38,7 +38,7 @@
  *         Alexey Merzlyakov
  *
  * Reference tutorial:
- * https://ros-planning.github.io/navigation2/tutorials/docs/writing_new_costmap2d_plugin.html
+ * https://navigation.ros.org/tutorials/docs/writing_new_costmap2d_plugin.html
  *********************************************************************/
 #ifndef GRADIENT_LAYER_HPP_
 #define GRADIENT_LAYER_HPP_
