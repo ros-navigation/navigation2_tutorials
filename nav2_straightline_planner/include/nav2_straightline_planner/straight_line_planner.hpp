@@ -35,7 +35,7 @@
  * Author: Shivang Patel
  *
  * Reference tutorial:
- * https://ros-planning.github.io/navigation2/tutorials/docs/writing_new_nav2planner_plugin.html
+ * https://navigation.ros.org/tutorials/docs/writing_new_nav2planner_plugin.html
  *********************************************************************/
 
 #ifndef NAV2_STRAIGHTLINE_PLANNER__STRAIGHT_LINE_PLANNER_HPP_

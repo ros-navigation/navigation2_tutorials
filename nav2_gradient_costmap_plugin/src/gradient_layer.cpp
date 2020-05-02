@@ -38,7 +38,7 @@
  *         Alexey Merzlyakov
  *
  * Reference tutorial:
- * https://ros-planning.github.io/navigation2/tutorials/docs/writing_new_costmap2d_plugin.html
+ * https://navigation.ros.org/tutorials/docs/writing_new_costmap2d_plugin.html
  *********************************************************************/
 #include "nav2_gradient_costmap_plugin/gradient_layer.hpp"
 
