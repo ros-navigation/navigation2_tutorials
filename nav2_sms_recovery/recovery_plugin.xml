@@ -1,0 +1,5 @@
+<library path="nav2_sms_recovery_plugin">
+  <class name="nav2_sms_recovery/SMSRecovery" type="nav2_sms_recovery::SMSRecovery" base_class_type="nav2_core::Recovery">
+    <description>This is an example plugin which produces an SMS text message recovery.</description>
+  </class>
+</library>
