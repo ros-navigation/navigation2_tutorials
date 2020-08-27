@@ -27,6 +27,9 @@ public:
   Status onRun(const std::shared_ptr<const Action::Goal> command) override;
 
   Status onCycleUpdate() override;
+
+  void onConfigure() override;
+
 protected:
   std::string _account_sid;
   std::string _auth_token;

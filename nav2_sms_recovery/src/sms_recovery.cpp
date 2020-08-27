@@ -13,6 +13,14 @@ namespace nav2_sms_recovery
 SMSRecovery::SMSRecovery()
 : Recovery<Action>()
 {
+}
+
+SMSRecovery::~SMSRecovery()
+{
+}
+
+void SMSRecovery::onConfigure()
+{
   node_->declare_parameter("account_sid");
   _account_sid = node_->get_parameter("account_sid").as_string();
   node_->declare_parameter("auth_token");
@@ -22,10 +30,6 @@ SMSRecovery::SMSRecovery()
   node_->declare_parameter("to_number");
   _to_number = node_->get_parameter("to_number").as_string();
   _twilio = std::make_shared<twilio::Twilio>(_account_sid, _auth_token);
-}
-
-SMSRecovery::~SMSRecovery()
-{
 }
 
 Status SMSRecovery::onRun(const std::shared_ptr<const Action::Goal> command)
