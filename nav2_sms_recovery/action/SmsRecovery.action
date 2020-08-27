@@ -1,0 +1,7 @@
+#goal definition
+string message
+---
+#result definition
+builtin_interfaces/Duration total_elapsed_time
+---
+#feedback definition
