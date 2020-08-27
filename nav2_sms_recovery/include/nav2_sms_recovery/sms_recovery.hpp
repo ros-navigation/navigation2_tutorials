@@ -14,6 +14,8 @@
 
 namespace nav2_sms_recovery
 {
+
+using namespace nav2_recoveries;  // NOLINT
 using Action = nav2_sms_recovery::action::SmsRecovery;
 
 class SMSRecovery : public Recovery<Action>
