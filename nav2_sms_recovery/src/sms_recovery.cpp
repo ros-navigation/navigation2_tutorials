@@ -7,7 +7,7 @@
 
 #include "nav2_sms_recovery/sms_recovery.hpp"
 
-namespace nav2_recoveries
+namespace nav2_sms_recovery
 {
 
 SMSRecovery::SMSRecovery()
@@ -53,7 +53,7 @@ Status SMSRecovery::onCycleUpdate()
   return Status::SUCCEEDED;
 }
 
-}  // namespace nav2_recoveries
+}  // namespace nav2_sms_recovery
 
 #include "pluginlib/class_list_macros.hpp"
-PLUGINLIB_EXPORT_CLASS(nav2_recoveries::SMSRecovery, nav2_core::Recovery)
+PLUGINLIB_EXPORT_CLASS(nav2_sms_recovery::SMSRecovery, nav2_core::Recovery)

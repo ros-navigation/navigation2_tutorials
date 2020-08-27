@@ -12,7 +12,7 @@
 #include "nav2_sms_recovery/action/sms_recovery.hpp"
 #include "nav2_sms_recovery/twilio.hpp"
 
-namespace nav2_recoveries
+namespace nav2_sms_recovery
 {
 using Action = nav2_sms_recovery::action::SmsRecovery;
 
@@ -33,6 +33,6 @@ protected:
   std::shared_ptr<twilio::Twilio> _twilio;
 };
 
-}  // namespace nav2_recoveries
+}  // namespace nav2_sms_recovery
 
 #endif  // NAV2_SMS_RECOVEY__SMS_RECOVERY_HPP_
