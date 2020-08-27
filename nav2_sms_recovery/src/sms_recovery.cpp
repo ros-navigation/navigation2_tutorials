@@ -16,21 +16,22 @@
 #include <chrono>
 #include <memory>
 
-#include "sms_recovery.hpp"
-#include "twilio.hpp"
+#include "nav2_sms_recovery/sms_recovery.hpp"
 
 namespace nav2_recoveries
 {
 
 SMSRecovery::SMSRecovery()
-: Recovery<WaitAction>(),
-  feedback_(std::make_shared<WaitAction::Feedback>())
+: Recovery<Action>()
 {
-  // TODO get param
-  _account_sid = "";
-  _auth_token = "";
-  _from_number = "";
-  _to_number = "";
+  node_->declare_parameter("account_sid");
+  _account_sid = node_->get_parameter("account_sid").as_string();
+  node_->declare_parameter("auth_token");
+  _auth_token = node_->get_parameter("auth_token").as_string();
+  node_->declare_parameter("from_number");
+  _from_number = node_->get_parameter("from_number").as_string();
+  node_->declare_parameter("to_number");
+  _to_number = node_->get_parameter("to_number").as_string();
   _twilio = std::make_shared<twilio::Twilio>(_account_sid, _auth_token);
 }
 
@@ -38,13 +39,13 @@ SMSRecovery::~SMSRecovery()
 {
 }
 
-Status SMSRecovery::onRun(const std::shared_ptr<const WaitAction::Goal> command)
+Status SMSRecovery::onRun(const std::shared_ptr<const Action::Goal> command)
 {
   std::string response;  
   bool message_success = _twilio->send_message(
     _to_number, 
     _from_number, 
-    goal->message,
+    command->message,
     response,
     "",
     false);

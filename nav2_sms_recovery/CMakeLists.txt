@@ -1,10 +1,6 @@
 cmake_minimum_required(VERSION 3.5)
 project(nav2_sms_recovery)
 
-# Default to C99
-set(CMAKE_C_STANDARD 99)
-
-
 # Default to C++14
 set(CMAKE_CXX_STANDARD 14)
 
@@ -23,6 +19,7 @@ find_package(builtin_interfaces REQUIRED)
 find_package(tf2_ros REQUIRED)
 find_package(nav2_costmap_2d REQUIRED)
 find_package(nav2_core REQUIRED)
+find_package(nav2_recoveries REQUIRED)
 find_package(pluginlib REQUIRED)
 
 include_directories(
@@ -46,11 +43,11 @@ set(dependencies
   nav2_costmap_2d
   nav2_core
   pluginlib
+  nav2_recoveries
 )
 
-set(action_files "action/sms_recovery.action")
 rosidl_generate_interfaces(${PROJECT_NAME}
-  ${action_files}
+  "action/SmsRecovery.action"
   DEPENDENCIES builtin_interfaces std_msgs
 )
 
@@ -59,12 +56,13 @@ add_library(${library_name} SHARED
   src/twilio.cpp
 )
 
-rosidl_target_interfaces(${library_name} "rosidl_typesupport_cpp")
 target_compile_definitions(${library_name} PUBLIC "PLUGINLIB__DISABLE_BOOST_FUNCTIONS")
 
 ament_target_dependencies(${library_name}
   ${dependencies}
 )
+
+rosidl_target_interfaces(${library_name} ${PROJECT_NAME} "rosidl_typesupport_cpp")
 
 pluginlib_export_plugin_description_file(nav2_core recovery_plugin.xml)
 
@@ -93,7 +91,7 @@ if(BUILD_TESTING)
   ament_lint_auto_find_test_dependencies()
 endif()
 
-
+ament_export_dependencies(rosidl_default_runtime)
 ament_export_include_directories(include)
 ament_export_libraries(${library_name})
 ament_export_dependencies(${dependencies})

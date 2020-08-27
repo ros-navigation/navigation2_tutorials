@@ -21,18 +21,19 @@
 
 #include "nav2_recoveries/recovery.hpp"
 #include "nav2_sms_recovery/action/sms_recovery.hpp"
+#include "nav2_sms_recovery/twilio.hpp"
 
 namespace nav2_recoveries
 {
-using Action = nav2_msgs::action::SMSRecovery;
+using Action = nav2_sms_recovery::action::SmsRecovery;
 
-class SMSRecovery : public Recovery<WaitAction>
+class SMSRecovery : public Recovery<Action>
 {
 public:
   SMSRecovery();
   ~SMSRecovery();
 
-  Status onRun(const std::shared_ptr<const WaitAction::Goal> command) override;
+  Status onRun(const std::shared_ptr<const Action::Goal> command) override;
 
   Status onCycleUpdate() override;
 protected:
