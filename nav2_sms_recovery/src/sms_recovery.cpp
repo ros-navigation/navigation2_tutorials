@@ -51,7 +51,7 @@ Status SMSRecovery::onRun(const std::shared_ptr<const Action::Goal> command)
     false);
 
   if (!message_success) {
-    RCLCPP_INFO(node_->get_logger(), "Message send failed.");
+    RCLCPP_INFO(node_->get_logger(), "SMS send failed.");
     return Status::FAILED;
   }
 
