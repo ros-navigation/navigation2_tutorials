@@ -40,6 +40,9 @@
  * Reference tutorial:
  * https://navigation.ros.org/tutorials/docs/writing_new_costmap2d_plugin.html
  *********************************************************************/
+#include <limits>
+#include <algorithm>
+
 #include "nav2_gradient_costmap_plugin/gradient_layer.hpp"
 
 #include "nav2_costmap_2d/costmap_math.hpp"
@@ -67,8 +70,9 @@ GradientLayer::GradientLayer()
 void
 GradientLayer::onInitialize()
 {
+  auto node = node_.lock();
   declareParameter("enabled", rclcpp::ParameterValue(true));
-  node_->get_parameter(name_ + "." + "enabled", enabled_);
+  node->get_parameter(name_ + "." + "enabled", enabled_);
 
   need_recalculation_ = false;
 }
@@ -117,7 +121,8 @@ GradientLayer::onFootprintChanged()
 {
   need_recalculation_ = true;
 
-  RCLCPP_DEBUG(rclcpp::get_logger(
+  RCLCPP_DEBUG(
+    rclcpp::get_logger(
       "nav2_costmap_2d"), "GradientLayer::onFootprintChanged(): num footprint points: %lu",
     layered_costmap_->getFootprint().size());
 }
@@ -170,7 +175,7 @@ GradientLayer::updateCosts(
     for (int i = min_i; i < max_i; i++) {
       int index = master_grid.getIndex(i, j);
       // setting the gradient cost
-      unsigned char cost = (LETHAL_OBSTACLE - gradient_index*GRADIENT_FACTOR)%255;
+      unsigned char cost = (LETHAL_OBSTACLE - gradient_index * GRADIENT_FACTOR) % 255;
       if (gradient_index <= GRADIENT_SIZE) {
         gradient_index++;
       } else {
