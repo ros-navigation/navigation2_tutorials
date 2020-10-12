@@ -1,19 +1,8 @@
 // Copyright (c) 2020 Samsung Research America
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+// This code is licensed under MIT license (see LICENSE.txt for details)
 
-#ifndef NAV2_SMS_RECOVERY__SMS_RECOVERY_HPP_
-#define NAV2_SMS_RECOVERY__SMS_RECOVERY_HPP_
+#ifndef NAV2_SMS_RECOVEY__SMS_RECOVERY_HPP_
+#define NAV2_SMS_RECOVEY__SMS_RECOVERY_HPP_
 
 #include <chrono>
 #include <string>
@@ -51,4 +40,4 @@ protected:
 
 }  // namespace nav2_sms_recovery
 
-#endif  // NAV2_SMS_RECOVERY__SMS_RECOVERY_HPP_
+#endif  // NAV2_SMS_RECOVEY__SMS_RECOVERY_HPP_

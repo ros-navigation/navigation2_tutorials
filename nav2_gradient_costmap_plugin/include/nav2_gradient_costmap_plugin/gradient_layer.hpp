@@ -40,8 +40,8 @@
  * Reference tutorial:
  * https://navigation.ros.org/tutorials/docs/writing_new_costmap2d_plugin.html
  *********************************************************************/
-#ifndef NAV2_GRADIENT_COSTMAP_PLUGIN__GRADIENT_LAYER_HPP_
-#define NAV2_GRADIENT_COSTMAP_PLUGIN__GRADIENT_LAYER_HPP_
+#ifndef GRADIENT_LAYER_HPP_
+#define GRADIENT_LAYER_HPP_
 
 #include "rclcpp/rclcpp.hpp"
 #include "nav2_costmap_2d/layer.hpp"
@@ -67,6 +67,7 @@ public:
 
   virtual void reset()
   {
+    return;
   }
 
   virtual void onFootprintChanged();
@@ -85,4 +86,4 @@ private:
 
 }  // namespace nav2_gradient_costmap_plugin
 
-#endif  // NAV2_GRADIENT_COSTMAP_PLUGIN__GRADIENT_LAYER_HPP_
+#endif  // GRADIENT_LAYER_HPP_
