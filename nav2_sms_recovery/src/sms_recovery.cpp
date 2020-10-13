@@ -21,34 +21,36 @@ SMSRecovery::~SMSRecovery()
 
 void SMSRecovery::onConfigure()
 {
-  node_->declare_parameter("account_sid");
-  _account_sid = node_->get_parameter("account_sid").as_string();
-  node_->declare_parameter("auth_token");
-  _auth_token = node_->get_parameter("auth_token").as_string();
-  node_->declare_parameter("from_number");
-  _from_number = node_->get_parameter("from_number").as_string();
-  node_->declare_parameter("to_number");
-  _to_number = node_->get_parameter("to_number").as_string();
+  auto node = node_.lock();
+  node->declare_parameter("account_sid");
+  _account_sid = node->get_parameter("account_sid").as_string();
+  node->declare_parameter("auth_token");
+  _auth_token = node->get_parameter("auth_token").as_string();
+  node->declare_parameter("from_number");
+  _from_number = node->get_parameter("from_number").as_string();
+  node->declare_parameter("to_number");
+  _to_number = node->get_parameter("to_number").as_string();
   _twilio = std::make_shared<twilio::Twilio>(_account_sid, _auth_token);
 }
 
 Status SMSRecovery::onRun(const std::shared_ptr<const Action::Goal> command)
 {
-  std::string response;  
+  auto node = node_.lock();
+  std::string response;
   bool message_success = _twilio->send_message(
-    _to_number, 
-    _from_number, 
+    _to_number,
+    _from_number,
     command->message,
     response,
     "",
     false);
 
   if (!message_success) {
-    RCLCPP_INFO(node_->get_logger(), "SMS send failed.");
+    RCLCPP_INFO(node->get_logger(), "SMS send failed.");
     return Status::FAILED;
   }
 
-  RCLCPP_INFO(node_->get_logger(), "SMS sent successfully!");
+  RCLCPP_INFO(node->get_logger(), "SMS sent successfully!");
   return Status::SUCCEEDED;
 }
 

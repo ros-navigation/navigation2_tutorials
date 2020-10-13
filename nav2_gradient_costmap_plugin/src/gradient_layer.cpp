@@ -67,8 +67,9 @@ GradientLayer::GradientLayer()
 void
 GradientLayer::onInitialize()
 {
+  auto node = node_.lock(); 
   declareParameter("enabled", rclcpp::ParameterValue(true));
-  node_->get_parameter(name_ + "." + "enabled", enabled_);
+  node->get_parameter(name_ + "." + "enabled", enabled_);
 
   need_recalculation_ = false;
 }
