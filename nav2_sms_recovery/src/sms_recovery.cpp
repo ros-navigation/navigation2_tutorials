@@ -35,11 +35,11 @@ void SMSRecovery::onConfigure()
 
 Status SMSRecovery::onRun(const std::shared_ptr<const Action::Goal> command)
 {
- 	auto node = node_.lock();   
-  std::string response;  
+  auto node = node_.lock();
+  std::string response;
   bool message_success = _twilio->send_message(
-    _to_number, 
-    _from_number, 
+    _to_number,
+    _from_number,
     command->message,
     response,
     "",
