@@ -41,7 +41,7 @@ public:
     void setPlan(const nav_msgs::msg::Path & path) override;
 
 protected:
-    nav_msgs::msg::Path transformGlobalPlan(const nav_msgs::msg::Path & path);
+    nav_msgs::msg::Path transformGlobalPlan(const geometry_msgs::msg::PoseStamped & pose);
 
     bool transformPose(
       const std::shared_ptr < tf2_ros::Buffer > tf,

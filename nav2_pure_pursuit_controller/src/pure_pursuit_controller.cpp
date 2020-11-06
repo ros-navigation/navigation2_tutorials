@@ -20,6 +20,28 @@ using nav2_util::declare_parameter_if_not_declared;
 namespace nav2_pure_pursuit_controller
 {
 
+/**
+ * Find element in iterator with the minimum calculated value
+ */
+template <typename Iter, typename Getter>
+Iter min_by(Iter begin, Iter end, Getter getCompareVal)
+{
+  if (begin == end)
+    return end;
+  auto lowest = getCompareVal(*begin);
+  Iter lowest_it = begin;
+  for (Iter it = ++begin; it != end; ++it)
+  {
+    auto comp = getCompareVal(*it);
+    if (comp < lowest)
+    {
+      lowest = comp;
+      lowest_it = it;
+    }
+  }
+  return lowest_it;
+}
+
 void PurePursuitController::configure(
   const rclcpp_lifecycle::LifecycleNode::WeakPtr & parent,
   std::string name, const std::shared_ptr<tf2_ros::Buffer> & tf,
@@ -85,14 +107,24 @@ geometry_msgs::msg::TwistStamped PurePursuitController::computeVelocityCommands(
   const geometry_msgs::msg::PoseStamped & pose,
   const geometry_msgs::msg::Twist &)
 {
-  // Find the first pose which is at a distance greater than the specified lookahed distance
-  auto goal_pose = std::find_if(
-    global_plan_.poses.begin(), global_plan_.poses.end(),
-    [&](const auto & global_plan_pose) {
-      return hypot(
-        global_plan_pose.pose.position.x,
-        global_plan_pose.pose.position.y) >= lookahead_dist_;
-    })->pose;
+  auto transformed_plan = transformGlobalPlan(pose);
+
+  // First find the closest pose on the path to the robot
+  auto closest_pose_it =
+      min_by(transformed_plan.poses.begin(), transformed_plan.poses.end(),
+             [](const geometry_msgs::msg::PoseStamped& ps) { return hypot(ps.pose.position.x, ps.pose.position.y); });
+
+  // From that point, find the first pose which is at a distance greater than the specified lookahed distance
+  auto goal_pose_it = std::find_if(closest_pose_it, transformed_plan.poses.end(), [&](const auto& ps) {
+    return hypot(ps.pose.position.x, ps.pose.position.y) >= lookahead_dist_;
+  });
+
+  // If the last pose is still within lookahed distance, take the last pose
+  if (goal_pose_it == transformed_plan.poses.end())
+  {
+    goal_pose_it = std::prev(transformed_plan.poses.end());
+  }
+  auto goal_pose = goal_pose_it->pose;
 
   double linear_vel, angular_vel;
 
@@ -123,15 +155,14 @@ geometry_msgs::msg::TwistStamped PurePursuitController::computeVelocityCommands(
 
 void PurePursuitController::setPlan(const nav_msgs::msg::Path & path)
 {
-  // Transform global path into the robot's frame
-  global_plan_ = transformGlobalPlan(path);
+  global_plan_ = path;
 }
 
-nav_msgs::msg::Path PurePursuitController::transformGlobalPlan(const nav_msgs::msg::Path & path)
+nav_msgs::msg::Path PurePursuitController::transformGlobalPlan(const geometry_msgs::msg::PoseStamped & pose)
 {
   // Original mplementation taken fron nav2_dwb_controller
 
-  if (path.poses.empty()) {
+  if (global_plan_.poses.empty()) {
     throw nav2_core::PlannerException("Received plan with zero length");
   }
 
@@ -144,13 +175,13 @@ nav_msgs::msg::Path PurePursuitController::transformGlobalPlan(const nav_msgs::m
   // Transform the near part of the global plan into the robot's frame of reference.
   nav_msgs::msg::Path transformed_plan;
   transformed_plan.header.frame_id = costmap_ros_->getBaseFrameID();
-  transformed_plan.header.stamp = path.header.stamp;
+  transformed_plan.header.stamp = pose.header.stamp;
 
   // Helper function for the transform below. Converts a pose from global
   // frame to robot's frame
   auto transformGlobalPoseToRobotFrame = [&](const auto & global_plan_pose) {
       geometry_msgs::msg::PoseStamped stamped_pose, transformed_pose;
-      stamped_pose.header.frame_id = path.header.frame_id;
+      stamped_pose.header.frame_id = global_plan_.header.frame_id;
       stamped_pose.pose = global_plan_pose.pose;
       transformPose(
         tf_, transformed_plan.header.frame_id,
@@ -159,7 +190,7 @@ nav_msgs::msg::Path PurePursuitController::transformGlobalPlan(const nav_msgs::m
     };
 
   std::transform(
-    path.poses.begin(), path.poses.end(),
+    global_plan_.poses.begin(), global_plan_.poses.end(),
     std::back_inserter(transformed_plan.poses),
     transformGlobalPoseToRobotFrame);
 
