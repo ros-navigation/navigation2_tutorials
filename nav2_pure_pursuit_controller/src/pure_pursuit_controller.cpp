@@ -6,6 +6,8 @@
  */
 
 #include <algorithm>
+#include <string>
+#include <memory>
 
 #include "nav2_core/exceptions.hpp"
 #include "nav2_util/node_utils.hpp"
@@ -23,18 +25,17 @@ namespace nav2_pure_pursuit_controller
 /**
  * Find element in iterator with the minimum calculated value
  */
-template <typename Iter, typename Getter>
+template<typename Iter, typename Getter>
 Iter min_by(Iter begin, Iter end, Getter getCompareVal)
 {
-  if (begin == end)
+  if (begin == end) {
     return end;
+  }
   auto lowest = getCompareVal(*begin);
   Iter lowest_it = begin;
-  for (Iter it = ++begin; it != end; ++it)
-  {
+  for (Iter it = ++begin; it != end; ++it) {
     auto comp = getCompareVal(*it);
-    if (comp < lowest)
-    {
+    if (comp < lowest) {
       lowest = comp;
       lowest_it = it;
     }
@@ -111,25 +112,30 @@ geometry_msgs::msg::TwistStamped PurePursuitController::computeVelocityCommands(
 
   // First find the closest pose on the path to the robot
   auto closest_pose_it =
-      min_by(transformed_plan.poses.begin(), transformed_plan.poses.end(),
-             [](const geometry_msgs::msg::PoseStamped& ps) { return hypot(ps.pose.position.x, ps.pose.position.y); });
+    min_by(
+    transformed_plan.poses.begin(), transformed_plan.poses.end(),
+    [](const geometry_msgs::msg::PoseStamped & ps) {
+      return hypot(ps.pose.position.x, ps.pose.position.y);
+    });
 
-  // From that point, find the first pose which is at a distance greater than the specified lookahed distance
-  auto goal_pose_it = std::find_if(closest_pose_it, transformed_plan.poses.end(), [&](const auto& ps) {
-    return hypot(ps.pose.position.x, ps.pose.position.y) >= lookahead_dist_;
-  });
+  // From that point, find the first pose which is at a distance greater than the specified lookahed
+  // distance
+  auto goal_pose_it = std::find_if(
+    closest_pose_it, transformed_plan.poses.end(), [&](const auto & ps) {
+      return hypot(ps.pose.position.x, ps.pose.position.y) >= lookahead_dist_;
+    });
 
   // If the last pose is still within lookahed distance, take the last pose
-  if (goal_pose_it == transformed_plan.poses.end())
-  {
+  if (goal_pose_it == transformed_plan.poses.end()) {
     goal_pose_it = std::prev(transformed_plan.poses.end());
   }
   auto goal_pose = goal_pose_it->pose;
 
   double linear_vel, angular_vel;
 
-  // If the goal pose is in front of the robot then compute the velocity using the pure pursuit algorithm
-  // else rotate with the max angular velocity until the goal pose is in front of the robot
+  // If the goal pose is in front of the robot then compute the velocity using the pure pursuit
+  // algorithm, else rotate with the max angular velocity until the goal pose is in front of the
+  // robot
   if (goal_pose.position.x > 0) {
     auto curvature = 2.0 * goal_pose.position.y /
       (goal_pose.position.x * goal_pose.position.x + goal_pose.position.y * goal_pose.position.y);
@@ -158,7 +164,8 @@ void PurePursuitController::setPlan(const nav_msgs::msg::Path & path)
   global_plan_ = path;
 }
 
-nav_msgs::msg::Path PurePursuitController::transformGlobalPlan(const geometry_msgs::msg::PoseStamped & pose)
+nav_msgs::msg::Path PurePursuitController::transformGlobalPlan(
+  const geometry_msgs::msg::PoseStamped & pose)
 {
   // Original mplementation taken fron nav2_dwb_controller
 
@@ -270,7 +277,7 @@ bool PurePursuitController::transformPose(
   return false;
 }
 
-}
+}  // namespace nav2_pure_pursuit_controller
 
 // Register this controller as a nav2_core plugin
 PLUGINLIB_EXPORT_CLASS(nav2_pure_pursuit_controller::PurePursuitController, nav2_core::Controller)
