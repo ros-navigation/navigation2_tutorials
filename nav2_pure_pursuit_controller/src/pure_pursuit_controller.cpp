@@ -12,12 +12,14 @@
 #include "nav2_core/exceptions.hpp"
 #include "nav2_util/node_utils.hpp"
 #include "nav2_pure_pursuit_controller/pure_pursuit_controller.hpp"
+#include "nav2_util/geometry_utils.hpp"
 
 using std::hypot;
 using std::min;
 using std::max;
 using std::abs;
 using nav2_util::declare_parameter_if_not_declared;
+using nav2_util::geometry_utils::euclidean_distance;
 
 namespace nav2_pure_pursuit_controller
 {
@@ -77,6 +79,8 @@ void PurePursuitController::configure(
   double transform_tolerance;
   node->get_parameter(plugin_name_ + ".transform_tolerance", transform_tolerance);
   transform_tolerance_ = rclcpp::Duration::from_seconds(transform_tolerance);
+
+  global_pub_ = node->create_publisher<nav_msgs::msg::Path>("received_global_plan", 1);
 }
 
 void PurePursuitController::cleanup()
@@ -85,6 +89,7 @@ void PurePursuitController::cleanup()
     logger_,
     "Cleaning up controller: %s of type pure_pursuit_controller::PurePursuitController",
     plugin_name_.c_str());
+  global_pub_.reset();
 }
 
 void PurePursuitController::activate()
@@ -93,6 +98,7 @@ void PurePursuitController::activate()
     logger_,
     "Activating controller: %s of type pure_pursuit_controller::PurePursuitController\"  %s",
     plugin_name_.c_str());
+  global_pub_->on_activate();
 }
 
 void PurePursuitController::deactivate()
@@ -101,6 +107,7 @@ void PurePursuitController::deactivate()
     logger_,
     "Dectivating controller: %s of type pure_pursuit_controller::PurePursuitController\"  %s",
     plugin_name_.c_str());
+  global_pub_->on_deactivate();
 }
 
 
@@ -110,18 +117,9 @@ geometry_msgs::msg::TwistStamped PurePursuitController::computeVelocityCommands(
 {
   auto transformed_plan = transformGlobalPlan(pose);
 
-  // First find the closest pose on the path to the robot
-  auto closest_pose_it =
-    min_by(
-    transformed_plan.poses.begin(), transformed_plan.poses.end(),
-    [](const geometry_msgs::msg::PoseStamped & ps) {
-      return hypot(ps.pose.position.x, ps.pose.position.y);
-    });
-
-  // From that point, find the first pose which is at a distance greater than the specified lookahed
-  // distance
+  // Find the first pose which is at a distance greater than the specified lookahed distance
   auto goal_pose_it = std::find_if(
-    closest_pose_it, transformed_plan.poses.end(), [&](const auto & ps) {
+    transformed_plan.poses.begin(), transformed_plan.poses.end(), [&](const auto & ps) {
       return hypot(ps.pose.position.x, ps.pose.position.y) >= lookahead_dist_;
     });
 
@@ -161,10 +159,12 @@ geometry_msgs::msg::TwistStamped PurePursuitController::computeVelocityCommands(
 
 void PurePursuitController::setPlan(const nav_msgs::msg::Path & path)
 {
+  global_pub_->publish(path);
   global_plan_ = path;
 }
 
-nav_msgs::msg::Path PurePursuitController::transformGlobalPlan(
+nav_msgs::msg::Path
+PurePursuitController::transformGlobalPlan(
   const geometry_msgs::msg::PoseStamped & pose)
 {
   // Original mplementation taken fron nav2_dwb_controller
@@ -173,20 +173,44 @@ nav_msgs::msg::Path PurePursuitController::transformGlobalPlan(
     throw nav2_core::PlannerException("Received plan with zero length");
   }
 
-  // Compute distance threshold of points on the plan that are outside the local costmap
+  // let's get the pose of the robot in the frame of the plan
+  geometry_msgs::msg::PoseStamped robot_pose;
+  if (!transformPose(
+      tf_, global_plan_.header.frame_id, pose,
+      robot_pose, transform_tolerance_))
+  {
+    throw nav2_core::PlannerException("Unable to transform robot pose into global plan's frame");
+  }
+
+  // we'll discard points on the plan that are outside the local costmap
   nav2_costmap_2d::Costmap2D * costmap = costmap_ros_->getCostmap();
-  double transform_dist_threshold =
-    std::max(costmap->getSizeInCellsX(), costmap->getSizeInCellsY()) *
+  double dist_threshold = std::max(costmap->getSizeInCellsX(), costmap->getSizeInCellsY()) *
     costmap->getResolution() / 2.0;
+
+  // First find the closest pose on the path to the robot
+  auto transformation_begin =
+    min_by(
+    global_plan_.poses.begin(), global_plan_.poses.end(),
+    [&robot_pose](const geometry_msgs::msg::PoseStamped & ps) {
+      return euclidean_distance(robot_pose, ps);
+    });
+
+
+  // Find the first pose in the end of the plan that's further than dist_threshold from the robot
+  auto transformation_end = std::find_if(
+    transformation_begin, end(global_plan_.poses),
+    [&](const auto & global_plan_pose) {
+      return euclidean_distance(robot_pose, global_plan_pose) > dist_threshold;
+    });
 
   // Transform the near part of the global plan into the robot's frame of reference.
   nav_msgs::msg::Path transformed_plan;
   transformed_plan.header.frame_id = costmap_ros_->getBaseFrameID();
   transformed_plan.header.stamp = pose.header.stamp;
 
-  // Helper function for the transform below. Converts a pose from global
-  // frame to robot's frame
-  auto transformGlobalPoseToRobotFrame = [&](const auto & global_plan_pose) {
+  // Helper function for the transform below. Converts a pose2D from global
+  // frame to local
+  auto transformGlobalPoseToLocal = [&](const auto & global_plan_pose) {
       geometry_msgs::msg::PoseStamped stamped_pose, transformed_pose;
       stamped_pose.header.frame_id = global_plan_.header.frame_id;
       stamped_pose.pose = global_plan_pose.pose;
@@ -197,20 +221,15 @@ nav_msgs::msg::Path PurePursuitController::transformGlobalPlan(
     };
 
   std::transform(
-    global_plan_.poses.begin(), global_plan_.poses.end(),
+    transformation_begin, transformation_end,
     std::back_inserter(transformed_plan.poses),
-    transformGlobalPoseToRobotFrame);
+    transformGlobalPoseToLocal);
 
-  auto transformation_end = std::find_if(
-    transformed_plan.poses.begin(), transformed_plan.poses.end(),
-    [&](const auto & global_plan_pose) {
-      return hypot(
-        global_plan_pose.pose.position.x,
-        global_plan_pose.pose.position.y) > transform_dist_threshold;
-    });
+  // Remove the portion of the global plan that we've already passed so we don't
+  // process it on the next iteration.
+  global_plan_.poses.erase(begin(global_plan_.poses), transformation_begin);
+  global_pub_->publish(transformed_plan);
 
-  // Discard points on the plan that are outside the local costmap
-  transformed_plan.poses.erase(transformation_end, transformed_plan.poses.end());
 
   if (transformed_plan.poses.empty()) {
     throw nav2_core::PlannerException("Resulting plan has 0 poses in it.");

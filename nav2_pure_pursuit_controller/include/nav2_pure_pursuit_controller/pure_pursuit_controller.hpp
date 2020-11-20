@@ -66,6 +66,7 @@ protected:
   rclcpp::Duration transform_tolerance_ {0, 0};
 
   nav_msgs::msg::Path global_plan_;
+  std::shared_ptr<rclcpp_lifecycle::LifecyclePublisher<nav_msgs::msg::Path>> global_pub_;
 };
 
 }  // namespace nav2_pure_pursuit_controller
