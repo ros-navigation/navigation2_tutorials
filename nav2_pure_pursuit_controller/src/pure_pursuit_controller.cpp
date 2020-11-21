@@ -243,8 +243,8 @@ bool PurePursuitController::transformPose(
   const std::string frame,
   const geometry_msgs::msg::PoseStamped & in_pose,
   geometry_msgs::msg::PoseStamped & out_pose,
-  rclcpp::Duration & transform_tolerance
-)
+  const rclcpp::Duration & transform_tolerance
+) const
 {
   // Implementation taken as is fron nav_2d_utils in nav2_dwb_controller
 
