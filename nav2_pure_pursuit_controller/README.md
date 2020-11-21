@@ -1,5 +1,5 @@
 # Nav2 Pure pursuit controller
-Tutorial code referenced in https://ros-planning.github.io/navigation2/
+Tutorial code referenced in https://navigation.ros.org/plugin_tutorials/docs/writing_new_nav2controller_plugin.html
 
 This controller implements a the pure pursuit algorithm to track a path.
 
@@ -8,4 +8,4 @@ The global path is continuously pruned to the closest point to the robot (see th
 Then the path is transformed to the robot frame and a lookahead point is determined.
 This lookahead point will be given to the pure pursuite algorithm to calculate a command velocity.
 
-![bla](./doc/lookahead_algorithm.png)
+![Lookahead algorithm](./doc/lookahead_algorithm.png)

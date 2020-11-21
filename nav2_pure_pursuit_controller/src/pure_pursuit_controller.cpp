@@ -182,7 +182,7 @@ PurePursuitController::transformGlobalPlan(
     throw nav2_core::PlannerException("Unable to transform robot pose into global plan's frame");
   }
 
-  // we'll discard points on the plan that are outside the local costmap
+  // We'll discard points on the plan that are outside the local costmap
   nav2_costmap_2d::Costmap2D * costmap = costmap_ros_->getCostmap();
   double dist_threshold = std::max(costmap->getSizeInCellsX(), costmap->getSizeInCellsY()) *
     costmap->getResolution() / 2.0;
@@ -195,41 +195,40 @@ PurePursuitController::transformGlobalPlan(
       return euclidean_distance(robot_pose, ps);
     });
 
-
-  // Find the first pose in the end of the plan that's further than dist_threshold from the robot
+  // From the closest point, look for the first point that's further then dist_threshold from the
+  // robot. These points are definitly outside of the costmap so we won't transform them.
   auto transformation_end = std::find_if(
     transformation_begin, end(global_plan_.poses),
     [&](const auto & global_plan_pose) {
       return euclidean_distance(robot_pose, global_plan_pose) > dist_threshold;
     });
 
-  // Transform the near part of the global plan into the robot's frame of reference.
-  nav_msgs::msg::Path transformed_plan;
-  transformed_plan.header.frame_id = costmap_ros_->getBaseFrameID();
-  transformed_plan.header.stamp = pose.header.stamp;
-
-  // Helper function for the transform below. Converts a pose2D from global
-  // frame to local
+  // Helper function for the transform below. Transforms a PoseStamped from global frame to local
   auto transformGlobalPoseToLocal = [&](const auto & global_plan_pose) {
+      // We took a copy of the pose, let's lookup the transform at the current time
       geometry_msgs::msg::PoseStamped stamped_pose, transformed_pose;
       stamped_pose.header.frame_id = global_plan_.header.frame_id;
+      stamped_pose.header.stamp = pose.header.stamp;
       stamped_pose.pose = global_plan_pose.pose;
       transformPose(
-        tf_, transformed_plan.header.frame_id,
+        tf_, costmap_ros_->getBaseFrameID(),
         stamped_pose, transformed_pose, transform_tolerance_);
       return transformed_pose;
     };
 
+  // Transform the near part of the global plan into the robot's frame of reference.
+  nav_msgs::msg::Path transformed_plan;
   std::transform(
     transformation_begin, transformation_end,
     std::back_inserter(transformed_plan.poses),
     transformGlobalPoseToLocal);
+  transformed_plan.header.frame_id = costmap_ros_->getBaseFrameID();
+  transformed_plan.header.stamp = pose.header.stamp;
 
   // Remove the portion of the global plan that we've already passed so we don't
-  // process it on the next iteration.
+  // process it on the next iteration (this is called path pruning)
   global_plan_.poses.erase(begin(global_plan_.poses), transformation_begin);
   global_pub_->publish(transformed_plan);
-
 
   if (transformed_plan.poses.empty()) {
     throw nav2_core::PlannerException("Resulting plan has 0 poses in it.");
