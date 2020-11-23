@@ -196,7 +196,7 @@ PurePursuitController::transformGlobalPlan(
     });
 
   // From the closest point, look for the first point that's further then dist_threshold from the
-  // robot. These points are definitly outside of the costmap so we won't transform them.
+  // robot. These points are definitely outside of the costmap so we won't transform them.
   auto transformation_end = std::find_if(
     transformation_begin, end(global_plan_.poses),
     [&](const auto & global_plan_pose) {
