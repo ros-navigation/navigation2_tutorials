@@ -19,12 +19,18 @@
 namespace nav2_gps_waypoint_follower_demo
 {
 GPSWayPointFollowerClient::GPSWayPointFollowerClient()
-: Node("GPSWaypointFollowerClient")
+: Node("GPSWaypointFollowerClient"), goal_done_(false)
 {
   gps_waypoint_follower_action_client_ =
     rclcpp_action::create_client<ClientT>(
-    this, "FollowGPSWaypoints");
-  gps_waypoint_follower_goal_ = ClientT::Goal();
+    this->get_node_base_interface(),
+    this->get_node_graph_interface(),
+    this->get_node_logging_interface(),
+    this->get_node_waitables_interface(),
+    "FollowGPSWaypoints");
+  this->timer_ = this->create_wall_timer(
+    std::chrono::milliseconds(500),
+    std::bind(&GPSWayPointFollowerClient::startWaypointFollowing, this));
   // number of poses that robot will go throug, specified in yaml file
   this->declare_parameter("number_of_gps_waypoints");
   int number_of_gps_waypoints =
@@ -51,6 +57,14 @@ GPSWayPointFollowerClient::~GPSWayPointFollowerClient()
 
 void GPSWayPointFollowerClient::startWaypointFollowing()
 {
+  using namespace std::placeholders;
+  this->timer_->cancel();
+  this->goal_done_ = false;
+
+  if (!this->gps_waypoint_follower_action_client_) {
+    RCLCPP_ERROR(this->get_logger(), "Action client not initialized");
+  }
+
   auto is_action_server_ready =
     gps_waypoint_follower_action_client_->wait_for_action_server(
     std::chrono::seconds(5));
@@ -58,8 +72,10 @@ void GPSWayPointFollowerClient::startWaypointFollowing()
     RCLCPP_ERROR(
       this->get_logger(), "FollowGPSWaypoints action server is not available."
       " Make sure an instance of GPSWaypointFollower is up and running");
+    this->goal_done_ = true;
     return;
   }
+  gps_waypoint_follower_goal_ = ClientT::Goal();
   // Send the goal poses
   gps_waypoint_follower_goal_.waypoints = gps_waypoints_from_yaml_;
 
@@ -74,30 +90,19 @@ void GPSWayPointFollowerClient::startWaypointFollowing()
 
   auto goal_options =
     rclcpp_action::Client<ClientT>::SendGoalOptions();
-  goal_options.result_callback = std::bind(
-    &GPSWayPointFollowerClient::resultCallback, this,
-    std::placeholders::_1);
+
   goal_options.goal_response_callback = std::bind(
-    &GPSWayPointFollowerClient::goalResponseCallback, this,
-    std::placeholders::_1);
+    &GPSWayPointFollowerClient::goalResponseCallback, this, _1);
+
+  goal_options.feedback_callback =
+    std::bind(&GPSWayPointFollowerClient::feedbackCallback, this, _1, _2);
+
+  goal_options.result_callback = std::bind(
+    &GPSWayPointFollowerClient::resultCallback, this, _1);
 
   auto future_goal_handle = gps_waypoint_follower_action_client_->async_send_goal(
     gps_waypoint_follower_goal_, goal_options);
-  if (rclcpp::spin_until_future_complete(
-      this->get_node_base_interface(),
-      future_goal_handle) != rclcpp::FutureReturnCode::SUCCESS)
-  {
-    RCLCPP_ERROR(this->get_logger(), "Send goal call failed");
-    return;
-  }
 
-  // Get the goal handle and save so that we can check
-  // on completion in the timer callback
-  gps_waypoint_follower_goalhandle_ = future_goal_handle.get();
-  if (!gps_waypoint_follower_goalhandle_) {
-    RCLCPP_ERROR(this->get_logger(), "Goal was rejected by server");
-    return;
-  }
 }
 
 std::vector<sensor_msgs::msg::NavSatFix>
@@ -141,50 +146,52 @@ GPSWayPointFollowerClient::loadGPSWaypointsFromYAML(
   return gps_waypoint_msg_vector;
 }
 
-void GPSWayPointFollowerClient::resultCallback(
-  const rclcpp_action::ClientGoalHandle
-  <ClientT>::WrappedResult & result)
+void GPSWayPointFollowerClient::goalResponseCallback(
+  GPSWaypointFollowerGoalHandle::SharedPtr goal_handle)
 {
+  if (!goal_handle) {
+    RCLCPP_ERROR(this->get_logger(), "Goal was rejected by server");
+  } else {
+    RCLCPP_INFO(this->get_logger(), "Goal accepted by server, waiting for result");
+  }
+}
+
+void GPSWayPointFollowerClient::feedbackCallback(
+  GPSWaypointFollowerGoalHandle::SharedPtr,
+  const std::shared_ptr<const ClientT::Feedback> feedback)
+{
+  RCLCPP_INFO(
+    this->get_logger(),
+    "Current waypoint: %i", feedback->current_waypoint);
+}
+
+void GPSWayPointFollowerClient::resultCallback(
+  const GPSWaypointFollowerGoalHandle::WrappedResult & result)
+{
+  this->goal_done_ = true;
   switch (result.code) {
     case rclcpp_action::ResultCode::SUCCEEDED:
-      current_goal_status_ = ActionStatus::SUCCEEDED;
-      return;
+      break;
     case rclcpp_action::ResultCode::ABORTED:
-      current_goal_status_ = ActionStatus::FAILED;
+      RCLCPP_ERROR(this->get_logger(), "Goal was aborted");
       return;
     case rclcpp_action::ResultCode::CANCELED:
-      current_goal_status_ = ActionStatus::FAILED;
+      RCLCPP_ERROR(this->get_logger(), "Goal was canceled");
       return;
     default:
-      current_goal_status_ = ActionStatus::UNKNOWN;
+      RCLCPP_ERROR(this->get_logger(), "Unknown result code");
       return;
   }
 
   RCLCPP_INFO(this->get_logger(), "Result received");
   for (auto number : result.result->missed_waypoints) {
-    RCLCPP_INFO(
-      this->get_logger(),
-      "Missed"
-      "%d points from given Yaml waypoints", number);
+    RCLCPP_INFO(this->get_logger(), "Missed Waypoint %i", number);
   }
 }
 
-void GPSWayPointFollowerClient::goalResponseCallback(
-  std::shared_future<rclcpp_action::ClientGoalHandle
-  <ClientT>::SharedPtr> future)
+bool GPSWayPointFollowerClient::is_goal_done() const
 {
-  auto goal_handle = future.get();
-  if (!goal_handle) {
-    RCLCPP_ERROR(
-      get_logger(),
-      "navigate_to_pose action client failed to send goal to server");
-    current_goal_status_ = ActionStatus::FAILED;
-  }
-}
-
-ActionStatus GPSWayPointFollowerClient::current_goal_status() const
-{
-  return this->current_goal_status_;
+  return this->goal_done_;
 }
 
 }  // namespace nav2_gps_waypoint_follower_demo
@@ -202,15 +209,10 @@ int main(int argc, char const * argv[])
   auto gps_waypoint_follower_client_node = std::make_shared
     <nav2_gps_waypoint_follower_demo::GPSWayPointFollowerClient>();
 
-  try {
-    gps_waypoint_follower_client_node->startWaypointFollowing();
-  } catch (const std::exception & e) {
-    std::cerr << e.what() << '\n';
-  }
-  while (gps_waypoint_follower_client_node->current_goal_status() !=
-    nav2_gps_waypoint_follower_demo::ActionStatus::SUCCEEDED)
-  {
+  while (!gps_waypoint_follower_client_node->is_goal_done()) {
     rclcpp::spin_some(gps_waypoint_follower_client_node);
-    return 0;
   }
+  rclcpp::shutdown();
+  return 0;
+
 }

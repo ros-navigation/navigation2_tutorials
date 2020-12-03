@@ -75,7 +75,7 @@ public:
    * @return true
    * @return false
    */
-  ActionStatus current_goal_status() const;
+  bool is_goal_done() const;
 
   /**
  * @brief given a parameter name on the yaml file, loads this parameter as sensor_msgs::msg::NavSatFix
@@ -87,17 +87,17 @@ public:
   std::vector<sensor_msgs::msg::NavSatFix>
   loadGPSWaypointsFromYAML(std::string waypoint_name_prefix, int num_waypoints);
 
-  void resultCallback(
-    const rclcpp_action::ClientGoalHandle
-    <ClientT>::WrappedResult & result);
+  void goalResponseCallback(GPSWaypointFollowerGoalHandle::SharedPtr goal_handle);
 
-  void goalResponseCallback(
-    std::shared_future<rclcpp_action::ClientGoalHandle
-    <ClientT>::SharedPtr> future);
+  void feedbackCallback(
+    GPSWaypointFollowerGoalHandle::SharedPtr,
+    const std::shared_ptr<const ClientT::Feedback> feedback);
+
+  void resultCallback(const GPSWaypointFollowerGoalHandle::WrappedResult & result);
 
 protected:
-  ActionStatus current_goal_status_;
-
+  bool goal_done_;
+  rclcpp::TimerBase::SharedPtr timer_;
   // client to connect waypoint follower service(FollowWaypoints)
   rclcpp_action::Client<ClientT>::SharedPtr
     gps_waypoint_follower_action_client_;
