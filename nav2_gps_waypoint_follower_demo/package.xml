@@ -19,7 +19,7 @@
     <depend>nav2_msgs</depend>
     <depend>nav2_util</depend>
     <depend>nav2_core</depend>
-    <depend>nav2_gps_waypoint_follower</depend>
+    <depend>nav2_waypoint_follower</depend>
     <depend>geometry_msgs</depend>
     <depend>nav2_lifecycle_manager</depend>
     <depend>std_msgs</depend>

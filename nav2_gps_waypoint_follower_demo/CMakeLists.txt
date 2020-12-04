@@ -10,7 +10,7 @@ find_package(nav2_common REQUIRED)
 find_package(nav2_core REQUIRED)
 find_package(nav2_util REQUIRED)
 find_package(nav2_msgs REQUIRED)
-find_package(nav2_gps_waypoint_follower REQUIRED)
+find_package(nav2_waypoint_follower REQUIRED)
 find_package(nav2_lifecycle_manager REQUIRED)
 find_package(tf2_ros REQUIRED)
 find_package(robot_localization REQUIRED)
@@ -34,7 +34,7 @@ set(dependencies
   nav_msgs
   nav2_msgs
   nav2_core
-  nav2_gps_waypoint_follower
+  nav2_waypoint_follower
   tf2_ros
   robot_localization
 )

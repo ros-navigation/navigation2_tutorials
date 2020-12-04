@@ -22,7 +22,7 @@
 #include "rclcpp/rclcpp.hpp"
 #include "rclcpp_action/rclcpp_action.hpp"
 #include "geometry_msgs/msg/point32.hpp"
-#include "nav2_gps_waypoint_follower/gps_waypoint_follower.hpp"
+#include "nav2_waypoint_follower/waypoint_follower.hpp"
 #include "nav2_msgs/action/follow_gps_waypoints.hpp"
 /**
  * @brief namespace for way point following, points are from a yaml file
