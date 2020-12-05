@@ -149,7 +149,7 @@ double PurePursuitController::getLookAheadDistance()
 
 // PROFILES
 // [] acceleration profiling, ramp up and down
-// [] if carrot dist < requested, scale down speeds because on approach to goal
+// [DONE] if carrot dist < requested, scale down speeds because on approach to goal
 
 // [] collision checking robot pose + along carrot
 // [DONE] scale look ahead dist by speed
@@ -178,11 +178,11 @@ geometry_msgs::msg::TwistStamped PurePursuitController::computeVelocityCommands(
     goal_pose_it = std::prev(transformed_plan.poses.end());
   }
 
-  auto carrot_pose = goal_pose_it->pose;
+  auto & carrot_pose = goal_pose_it->pose;
   double linear_vel, angular_vel;
 
   // Find distance to look ahead point (carrot)
-  double carrot_dist = hypot(
+  const double carrot_dist = hypot(
     pose.pose.position.x - carrot_pose.position.x,
     pose.pose.position.y - carrot_pose.position.y);
 
@@ -196,26 +196,18 @@ geometry_msgs::msg::TwistStamped PurePursuitController::computeVelocityCommands(
   linear_vel = desired_linear_vel_;
   angular_vel = desired_linear_vel_ * curvature;
 
-  // TODO apply acceleration profiles and ramp down on carrot dist
-    // does ramp down
-    // carrot_dist_err = fabs(carrot_dist - lookahead_dist)
-    // if (carrot_dist_err > costmap_resolution)
-    //   v linear out = v linear * (carrot_dist_error / lookahead_dist);
-    // 
-    // store last velocities / timestamp
-    // v - v0 = at
-    // if a < a max, OK (check if speeding up or slowing down to apply accel / decel max)
-    // else, set v = v0 + at
-    // apply to linear and angular (helps with ramp up and angular changes)
+  rclcpp::Duration dt = pose.header.stamp - last_cmd_.header.stamp;
+  applyKinematicConstraints(
+    linear_vel, angular_vel, fabs(lookahead_dist - carrot_dist), lookahead_dist, dt.seconds());
 
   // make sure in range of valid velocities
   angular_vel = std::clamp(angular_vel, -max_angular_vel_, max_angular_vel_);
+  linear_vel = std::clamp(linear_vel, 0.0, desired_linear_vel_);
 
-  // TODO collision check robot pose -> carrot (function)
-    // get pose robot and carrot
-    // interpolate between them costmap resolution
-    // check for collisions
-    // return bool true/false
+  if (isCollisionImminent(pose, carrot_pose)) {
+    RCLCPP_ERROR(logger_, "Collision imminent!");
+    throw std::runtime_error("PurePursuitController detected collision ahead!");
+  }
 
   // populate and return message
   geometry_msgs::msg::TwistStamped cmd_vel;
@@ -223,7 +215,48 @@ geometry_msgs::msg::TwistStamped PurePursuitController::computeVelocityCommands(
   cmd_vel.header.stamp = clock_->now();
   cmd_vel.twist.linear.x = linear_vel;
   cmd_vel.twist.angular.z = angular_vel;
+  last_cmd_ = cmd_vel;
   return cmd_vel;
+}
+
+bool PurePursuitController::isCollisionImminent(
+  const geometry_msgs::msg::PoseStamped & robot_pose,
+  const geometry_msgs::msg::PoseStamped & carrot_pose)
+{
+  // TODO
+  // interpolate between carrot/robot at costmap resolution
+  // check for collisions
+  // return bool true/false
+}
+
+void PurePursuitController::applyKinematicConstraints(
+  double & linear_vel, double & angular_vel,
+  const double & dist_error, const double & lookahead_dist, const double & dt)
+{
+  // TODO need separate accel/decel for linear and angular velocities
+
+  // if the actual lookahead distance is shorter than requested, that means we're at the
+  // end of the path. We'll scale linear velocity by error to slow to a smooth stop
+  if (dist_error > 2.0 * costmap_ros_->getCostmap()->getResolution()) {
+    linear_vel = linear_vel * (dist_error / lookahead_dist);
+  }
+
+  // if we're accelerating or decelerating too fast, limit linear velocity
+  const double dt = ...;
+  double measured_lin_accel = (linear_vel - last_cmd_.twist.linear.x) / dt;
+  if (measured_lin_accel > max_accel_) {
+    linear_vel = last_cmd_.twist.linear.x + max_accel_ * dt;
+  } else if (measured_lin_accel < -max_decel) {
+    linear_vel = last_cmd_.twist.linear.x - max_decel_ * dt;
+  }
+
+  // if we're accelerating or decelerating too fast, limit angular velocity
+  double measured_ang_accel = (angular_vel - last_cmd_.twist.angular.z) / dt;
+  if (measured_ang_accel > max_accel) {
+    angular_vel = last_cmd_.twist.angular.z + max_accel_ * dt;
+  } else if (measured_ang_accel < -max_decel) {
+    angular_vel = last_cmd_.twist.angular.z - max_decel_ * dt;
+  }
 }
 
 void PurePursuitController::setPlan(const nav_msgs::msg::Path & path)
@@ -278,6 +311,7 @@ PurePursuitController::transformGlobalPlan(
     };
 
   // Transform the near part of the global plan into the robot's frame of reference.
+  nav_msgs::msg::Path transformed_plan;
   std::transform(
     transformation_begin, transformation_end,
     std::back_inserter(transformed_plan.poses),

@@ -52,6 +52,12 @@ protected:
 
   double getLookAheadDistance();
 
+  bool isCollisionImminent(const geometry_msgs::msg::PoseStamped &, const geometry_msgs::msg::PoseStamped &);
+
+  void applyKinematicConstraints(
+    double & linear_vel, double & angular_vel,
+    const double & dist_error, const double & lookahead_dist, const double & dt);
+
   rclcpp_lifecycle::LifecycleNode::WeakPtr node_;
   std::shared_ptr<tf2_ros::Buffer> tf_;
   std::string plugin_name_;
@@ -69,6 +75,7 @@ protected:
   double max_decel_;
   bool use_velocity_scaled_lookahead_dist_;
   rclcpp::Duration transform_tolerance_ {0, 0};
+  geometry_msgs::msg::TwistStamped last_cmd_;
 
   nav_msgs::msg::Path global_plan_;
   std::shared_ptr<rclcpp_lifecycle::LifecyclePublisher<nav_msgs::msg::Path>> global_pub_;
