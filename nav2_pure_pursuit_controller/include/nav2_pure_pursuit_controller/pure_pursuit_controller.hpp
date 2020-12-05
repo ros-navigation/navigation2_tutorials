@@ -71,8 +71,10 @@ protected:
   double max_lookahead_dist_;
   double min_lookahead_dist_;
   double lookahead_gain_;
-  double max_accel_;
-  double max_decel_;
+  double max_linear_accel_;
+  double max_linear_decel_;
+  double max_angular_accel_;
+  double max_angular_decel_;
   bool use_velocity_scaled_lookahead_dist_;
   rclcpp::Duration transform_tolerance_ {0, 0};
   geometry_msgs::msg::TwistStamped last_cmd_;

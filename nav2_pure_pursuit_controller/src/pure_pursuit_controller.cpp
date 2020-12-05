@@ -66,9 +66,13 @@ void PurePursuitController::configure(
   declare_parameter_if_not_declared(
     node, plugin_name_ + ".desired_linear_vel", rclcpp::ParameterValue(0.5));
   declare_parameter_if_not_declared(
-    node, plugin_name_ + ".max_accel", rclcpp::ParameterValue(1.0));
+    node, plugin_name_ + ".max_linear_accel", rclcpp::ParameterValue(1.0));
   declare_parameter_if_not_declared(
-    node, plugin_name_ + ".max_decel", rclcpp::ParameterValue(1.0));
+    node, plugin_name_ + ".max_linear_decel", rclcpp::ParameterValue(1.0));
+  declare_parameter_if_not_declared(
+    node, plugin_name_ + ".max_angular_accel", rclcpp::ParameterValue(1.0));
+  declare_parameter_if_not_declared(
+    node, plugin_name_ + ".max_angular_decel", rclcpp::ParameterValue(1.0));
   declare_parameter_if_not_declared(
     node, plugin_name_ + ".lookahead_dist",
     rclcpp::ParameterValue(0.4));
@@ -90,8 +94,10 @@ void PurePursuitController::configure(
       false));
 
   node->get_parameter(plugin_name_ + ".desired_linear_vel", desired_linear_vel_);
-  node->get_parameter(plugin_name_ + ".max_accel", max_accel_);
-  node->get_parameter(plugin_name_ + ".max_decel", max_decel_);
+  node->get_parameter(plugin_name_ + ".max_linear_accel", max_linear_accel_);
+  node->get_parameter(plugin_name_ + ".max_linear_decel", max_linear_decel_);
+  node->get_parameter(plugin_name_ + ".max_angular_accel", max_angular_accel_);
+  node->get_parameter(plugin_name_ + ".max_angular_decel", max_angular_decel_);
   node->get_parameter(plugin_name_ + ".lookahead_dist", lookahead_dist_);
   node->get_parameter(plugin_name_ + ".min_lookahead_dist", min_lookahead_dist_);
   node->get_parameter(plugin_name_ + ".max_lookahead_dist", max_lookahead_dist_);
@@ -148,7 +154,7 @@ double PurePursuitController::getLookAheadDistance()
 }
 
 // PROFILES
-// [] acceleration profiling, ramp up and down
+// [DONE] acceleration profiling, ramp up and down
 // [DONE] if carrot dist < requested, scale down speeds because on approach to goal
 
 // [] collision checking robot pose + along carrot
@@ -233,8 +239,6 @@ void PurePursuitController::applyKinematicConstraints(
   double & linear_vel, double & angular_vel,
   const double & dist_error, const double & lookahead_dist, const double & dt)
 {
-  // TODO need separate accel/decel for linear and angular velocities
-
   // if the actual lookahead distance is shorter than requested, that means we're at the
   // end of the path. We'll scale linear velocity by error to slow to a smooth stop
   if (dist_error > 2.0 * costmap_ros_->getCostmap()->getResolution()) {
@@ -242,20 +246,19 @@ void PurePursuitController::applyKinematicConstraints(
   }
 
   // if we're accelerating or decelerating too fast, limit linear velocity
-  const double dt = ...;
   double measured_lin_accel = (linear_vel - last_cmd_.twist.linear.x) / dt;
   if (measured_lin_accel > max_accel_) {
-    linear_vel = last_cmd_.twist.linear.x + max_accel_ * dt;
+    linear_vel = last_cmd_.twist.linear.x + max_linear_accel_ * dt;
   } else if (measured_lin_accel < -max_decel) {
-    linear_vel = last_cmd_.twist.linear.x - max_decel_ * dt;
+    linear_vel = last_cmd_.twist.linear.x - max_linear_decel_ * dt;
   }
 
   // if we're accelerating or decelerating too fast, limit angular velocity
   double measured_ang_accel = (angular_vel - last_cmd_.twist.angular.z) / dt;
   if (measured_ang_accel > max_accel) {
-    angular_vel = last_cmd_.twist.angular.z + max_accel_ * dt;
+    angular_vel = last_cmd_.twist.angular.z + max_angular_accel_ * dt;
   } else if (measured_ang_accel < -max_decel) {
-    angular_vel = last_cmd_.twist.angular.z - max_decel_ * dt;
+    angular_vel = last_cmd_.twist.angular.z - max_angular_decel_ * dt;
   }
 }
 
