@@ -46,12 +46,11 @@ protected:
   nav_msgs::msg::Path transformGlobalPlan(const geometry_msgs::msg::PoseStamped & pose);
 
   bool transformPose(
-    const std::shared_ptr<tf2_ros::Buffer> tf,
     const std::string frame,
     const geometry_msgs::msg::PoseStamped & in_pose,
-    geometry_msgs::msg::PoseStamped & out_pose,
-    const rclcpp::Duration & transform_tolerance
-  ) const;
+    geometry_msgs::msg::PoseStamped & out_pose) const;
+
+  double getLookAheadDistance();
 
   rclcpp_lifecycle::LifecycleNode::WeakPtr node_;
   std::shared_ptr<tf2_ros::Buffer> tf_;
@@ -63,6 +62,12 @@ protected:
   double desired_linear_vel_;
   double lookahead_dist_;
   double max_angular_vel_;
+  double max_lookahead_dist_;
+  double min_lookahead_dist_;
+  double lookahead_gain_;
+  double max_accel_;
+  double max_decel_;
+  bool use_velocity_scaled_lookahead_dist_;
   rclcpp::Duration transform_tolerance_ {0, 0};
 
   nav_msgs::msg::Path global_plan_;
