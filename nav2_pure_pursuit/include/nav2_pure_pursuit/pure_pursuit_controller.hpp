@@ -2,15 +2,17 @@
  * SPDX-License-Identifier: BSD-3-Clause
  *
  *  Author(s): Shrijit Singh <shrijitsingh99@gmail.com>
+ *  Author(s): Steve Macenski <stevenmacenski@gmail.com>
  *
  */
 
-#ifndef NAV2_PURE_PURSUIT_CONTROLLER__PURE_PURSUIT_CONTROLLER_HPP_
-#define NAV2_PURE_PURSUIT_CONTROLLER__PURE_PURSUIT_CONTROLLER_HPP_
+#ifndef NAV2_PURE_PURSUIT__PURE_PURSUIT_CONTROLLER_HPP_
+#define NAV2_PURE_PURSUIT__PURE_PURSUIT_CONTROLLER_HPP_
 
 #include <string>
 #include <vector>
 #include <memory>
+#include <algorithm>
 
 #include "nav2_core/controller.hpp"
 #include "rclcpp/rclcpp.hpp"
@@ -29,7 +31,7 @@ public:
   void configure(
     const rclcpp_lifecycle::LifecycleNode::WeakPtr & parent,
     std::string name, const std::shared_ptr<tf2_ros::Buffer> & tf,
-    const std::shared_ptr<nav2_costmap_2d::Costmap2DROS> & costmap_ros);
+    const std::shared_ptr<nav2_costmap_2d::Costmap2DROS> & costmap_ros) override;
 
 
   void cleanup() override;
@@ -50,18 +52,22 @@ protected:
     const geometry_msgs::msg::PoseStamped & in_pose,
     geometry_msgs::msg::PoseStamped & out_pose) const;
 
-  double getLookAheadDistance();
+  double getLookAheadDistance(const geometry_msgs::msg::Twist &);
 
   bool isCollisionImminent(const geometry_msgs::msg::PoseStamped &, const geometry_msgs::msg::PoseStamped &);
+  bool inCollision(const double & x, const double & y);
 
   void applyKinematicConstraints(
     double & linear_vel, double & angular_vel,
     const double & dist_error, const double & lookahead_dist, const double & dt);
 
+  geometry_msgs::msg::PoseStamped getLookAheadMarker(const double &, const nav_msgs::msg::Path &);
+
   rclcpp_lifecycle::LifecycleNode::WeakPtr node_;
   std::shared_ptr<tf2_ros::Buffer> tf_;
   std::string plugin_name_;
   std::shared_ptr<nav2_costmap_2d::Costmap2DROS> costmap_ros_;
+  nav2_costmap_2d::Costmap2D * costmap_;
   rclcpp::Logger logger_ {rclcpp::get_logger("PurePursuitController")};
   rclcpp::Clock::SharedPtr clock_;
 
@@ -76,7 +82,7 @@ protected:
   double max_angular_accel_;
   double max_angular_decel_;
   bool use_velocity_scaled_lookahead_dist_;
-  rclcpp::Duration transform_tolerance_ {0, 0};
+  tf2::Duration transform_tolerance_;
   geometry_msgs::msg::TwistStamped last_cmd_;
 
   nav_msgs::msg::Path global_plan_;
