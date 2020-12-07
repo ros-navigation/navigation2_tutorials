@@ -11,6 +11,7 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+
 #ifndef NAV2_GPS_WAYPOINT_FOLLOWER_DEMO__GPS_WAYPOINT_FOLLOWER_DEMO_HPP_
 #define NAV2_GPS_WAYPOINT_FOLLOWER_DEMO__GPS_WAYPOINT_FOLLOWER_DEMO_HPP_
 
@@ -24,6 +25,7 @@
 #include "geometry_msgs/msg/point32.hpp"
 #include "nav2_waypoint_follower/waypoint_follower.hpp"
 #include "nav2_msgs/action/follow_gps_waypoints.hpp"
+
 /**
  * @brief namespace for way point following, points are from a yaml file
  *
@@ -81,11 +83,10 @@ public:
  * @brief given a parameter name on the yaml file, loads this parameter as sensor_msgs::msg::NavSatFix
  *  Note that this parameter needs to be an array of doubles
  *
- * @param param_name
  * @return sensor_msgs::msg::NavSatFix
  */
   std::vector<sensor_msgs::msg::NavSatFix>
-  loadGPSWaypointsFromYAML(std::string waypoint_name_prefix, int num_waypoints);
+  loadGPSWaypointsFromYAML();
 
   void goalResponseCallback(GPSWaypointFollowerGoalHandle::SharedPtr goal_handle);
 

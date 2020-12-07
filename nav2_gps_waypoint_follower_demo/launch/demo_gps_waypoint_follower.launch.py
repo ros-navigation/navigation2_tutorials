@@ -38,12 +38,13 @@ def generate_launch_description():
 
     params_declare = DeclareLaunchArgument('params_file',
                                            default_value=os.path.join(
-                                               share_dir, 'params', 'city_world_gps_waypoints.yaml'),
+                                               share_dir, 'params', 'demo_gps_waypoints.yaml'),
                                            description='FPath to the ROS2 parameters file to use.')
 
     driver_node = LifecycleNode(package='nav2_gps_waypoint_follower_demo',
                                 executable='gps_waypoint_follower_demo',
                                 name=node_name,
+                                namespace='',
                                 output='screen',
                                 parameters=[parameter_file],
                                 )

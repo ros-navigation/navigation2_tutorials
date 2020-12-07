@@ -32,13 +32,8 @@ GPSWayPointFollowerClient::GPSWayPointFollowerClient()
     std::chrono::milliseconds(500),
     std::bind(&GPSWayPointFollowerClient::startWaypointFollowing, this));
   // number of poses that robot will go throug, specified in yaml file
-  this->declare_parameter("number_of_gps_waypoints");
-  int number_of_gps_waypoints =
-    this->get_parameter("number_of_gps_waypoints").as_int();
-  std::string gps_waypoint_name_prefix = "gps_waypoint";
-  gps_waypoints_from_yaml_ = loadGPSWaypointsFromYAML(
-    gps_waypoint_name_prefix,
-    number_of_gps_waypoints);
+  this->declare_parameter("waypoints");
+  gps_waypoints_from_yaml_ = loadGPSWaypointsFromYAML();
   RCLCPP_INFO(
     this->get_logger(),
     "Loaded %i GPS waypoints from YAML, gonna pass them to FollowGPSWaypoints...",
@@ -67,7 +62,7 @@ void GPSWayPointFollowerClient::startWaypointFollowing()
 
   auto is_action_server_ready =
     gps_waypoint_follower_action_client_->wait_for_action_server(
-    std::chrono::seconds(5));
+    std::chrono::seconds(1));
   if (!is_action_server_ready) {
     RCLCPP_ERROR(
       this->get_logger(), "FollowGPSWaypoints action server is not available."
@@ -106,31 +101,28 @@ void GPSWayPointFollowerClient::startWaypointFollowing()
 }
 
 std::vector<sensor_msgs::msg::NavSatFix>
-GPSWayPointFollowerClient::loadGPSWaypointsFromYAML(
-  std::string waypoint_name_prefix, int num_waypoints)
+GPSWayPointFollowerClient::loadGPSWaypointsFromYAML()
 {
+  std::vector<std::string> waypoints_vector =
+    this->get_parameter("waypoints").as_string_array();
   std::vector<sensor_msgs::msg::NavSatFix> gps_waypoint_msg_vector;
-  // get all the poses in yaml file using provided utility function
-  for (int i = 0; i < num_waypoints; i++) {
-    // prefix for each fake task, the last letter is basically index
-    std::string curr_waypoint_name = waypoint_name_prefix + std::to_string(i);
+  for (auto && curr_waypoint : waypoints_vector) {
     try {
-      this->declare_parameter(curr_waypoint_name);
+      this->declare_parameter(curr_waypoint);
       std::vector<double> gps_waypoint_vector =
-        this->get_parameter(curr_waypoint_name).as_double_array();
-
-      // throw exeption if incorrect format was detected from yaml file reading
-      if (gps_waypoint_vector.size() < 3) {
+        this->get_parameter(curr_waypoint).as_double_array();
+      // throw exception if incorrect format was detected from yaml file reading
+      if (gps_waypoint_vector.size() != 3) {
         RCLCPP_FATAL(
           this->get_logger(),
           "GPS waypoint that was loaded from YAML file seems to have incorrect"
-          "form, the right format is; Lat, Long, Alt with doble types");
+          " form, the right format is; wpN: [Lat, Long, Alt] with double types");
         throw rclcpp::exceptions::InvalidParametersException(
-                "[ERROR] See above error, correct "
-                " the right format is; Lat, Long, Alt with doble types"
+                "[ERROR] See above error"
+                " the right format is; wpN: [Lat, Long, Alt] with double types"
                 "E.g gps_waypoint0; [0.0, 0.0, 0.0], please chechk YAML file");
       }
-      // construct the gps waypoint and push them to pair
+      // construct the gps waypoint and push them to their vector
       // lat, long , alt
       sensor_msgs::msg::NavSatFix gps_point;
       gps_point.latitude = gps_waypoint_vector.at(0);
@@ -141,7 +133,6 @@ GPSWayPointFollowerClient::loadGPSWaypointsFromYAML(
       std::cerr << e.what() << '\n';
     }
   }
-
   // return the read pair of this gps waypoint to it's caller
   return gps_waypoint_msg_vector;
 }
@@ -214,5 +205,4 @@ int main(int argc, char const * argv[])
   }
   rclcpp::shutdown();
   return 0;
-
 }
