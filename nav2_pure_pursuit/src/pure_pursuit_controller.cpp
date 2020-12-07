@@ -187,7 +187,7 @@ geometry_msgs::msg::TwistStamped PurePursuitController::computeVelocityCommands(
   angular_vel = desired_linear_vel_ * curvature;
 
   // Make sure we're in compliance with basic kinematics
-  rclcpp::Duration dt = pose.header.stamp - last_cmd_.header.stamp;
+  rclcpp::Duration dt = rclcpp::Time(pose.header.stamp) - rclcpp::Time(last_cmd_.header.stamp);
   applyKinematicConstraints(
     linear_vel, angular_vel,
     fabs(lookahead_dist - sqrt(carrot_dist2)), lookahead_dist, dt.seconds());
