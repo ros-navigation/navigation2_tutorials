@@ -50,7 +50,7 @@ install(DIRECTORY include/
   DESTINATION include/)
 
 install(
-  DIRECTORY launch params
+  DIRECTORY launch params models worlds
   DESTINATION share/${PROJECT_NAME})
 
 if(BUILD_TESTING)
