@@ -240,19 +240,15 @@ bool PurePursuitController::isCollisionImminent(
   const double pt_distance = carrot_dist / num_pts;
 
   geometry_msgs::msg::PoseStamped carrot_in_odom;
-  try {
-    tf_->transform(carrot_pose, carrot_in_odom,
-      costmap_ros_->getGlobalFrameID(), transform_tolerance_);
+  if (!transformPose(costmap_ros_->getGlobalFrameID(), carrot_pose, carrot_in_odom))
+  {
+    RCLCPP_ERROR(logger_, "Unable to get carrot pose in odom frame, failing collision check!");
     return true;
-  } catch (tf2::TransformException & ex) {
-    RCLCPP_ERROR(
-      logger_,
-      "Exception attempting to get look ahead point in odom frame: %s", ex.what());
   }
 
   geometry_msgs::msg::Vector3 unit_vector;
-  unit_vector.x = carrot_in_odom.pose.position.x / carrot_dist;
-  unit_vector.y = carrot_in_odom.pose.position.y / carrot_dist;
+  unit_vector.x = (carrot_in_odom.pose.position.x - robot_pose.pose.position.x) / carrot_dist;
+  unit_vector.y = (carrot_in_odom.pose.position.y - robot_pose.pose.position.y) / carrot_dist;
 
   double curr_dist;
   geometry_msgs::msg::Vector3 cur_pt;
