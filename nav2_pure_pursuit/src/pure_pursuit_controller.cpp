@@ -87,7 +87,7 @@ void PurePursuitController::configure(
     node, plugin_name_ + ".max_lookahead_dist",
     rclcpp::ParameterValue(0.6));
   declare_parameter_if_not_declared(
-    node, plugin_name_ + ".lookahead_gain",
+    node, plugin_name_ + ".lookahead_time",
     rclcpp::ParameterValue(1.5));
   declare_parameter_if_not_declared(
     node, plugin_name_ + ".max_angular_vel", rclcpp::ParameterValue(1.0));
@@ -105,7 +105,7 @@ void PurePursuitController::configure(
   node->get_parameter(plugin_name_ + ".lookahead_dist", lookahead_dist_);
   node->get_parameter(plugin_name_ + ".min_lookahead_dist", min_lookahead_dist_);
   node->get_parameter(plugin_name_ + ".max_lookahead_dist", max_lookahead_dist_);
-  node->get_parameter(plugin_name_ + ".lookahead_gain", lookahead_gain_);
+  node->get_parameter(plugin_name_ + ".lookahead_time", lookahead_time_);
   node->get_parameter(plugin_name_ + ".max_angular_vel", max_angular_vel_);
   double transform_tolerance;
   node->get_parameter(plugin_name_ + ".transform_tolerance", transform_tolerance);
@@ -149,7 +149,7 @@ double PurePursuitController::getLookAheadDistance(const geometry_msgs::msg::Twi
   // Else, use the default look ahead distance
   double lookahead_dist = 0.0;
   if (use_velocity_scaled_lookahead_dist_) {
-    lookahead_dist = speed.linear.x * lookahead_gain_;
+    lookahead_dist = speed.linear.x * lookahead_time_;
     lookahead_dist = std::clamp(lookahead_dist, min_lookahead_dist_, max_lookahead_dist_);
   } else {
     lookahead_dist = lookahead_dist_;

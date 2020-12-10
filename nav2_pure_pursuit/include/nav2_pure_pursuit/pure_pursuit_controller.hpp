@@ -76,7 +76,7 @@ protected:
   double max_angular_vel_;
   double max_lookahead_dist_;
   double min_lookahead_dist_;
-  double lookahead_gain_;
+  double lookahead_time_;
   double max_linear_accel_;
   double max_linear_decel_;
   double max_angular_accel_;
