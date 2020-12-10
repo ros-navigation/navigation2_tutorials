@@ -78,24 +78,20 @@ void PurePursuitController::configure(
   declare_parameter_if_not_declared(
     node, plugin_name_ + ".max_angular_decel", rclcpp::ParameterValue(1.0));
   declare_parameter_if_not_declared(
-    node, plugin_name_ + ".lookahead_dist",
-    rclcpp::ParameterValue(0.4));
+    node, plugin_name_ + ".lookahead_dist", rclcpp::ParameterValue(0.4));
   declare_parameter_if_not_declared(
-    node, plugin_name_ + ".min_lookahead_dist",
-    rclcpp::ParameterValue(0.3));
+    node, plugin_name_ + ".min_lookahead_dist", rclcpp::ParameterValue(0.3));
   declare_parameter_if_not_declared(
-    node, plugin_name_ + ".max_lookahead_dist",
-    rclcpp::ParameterValue(0.6));
+    node, plugin_name_ + ".max_lookahead_dist", rclcpp::ParameterValue(0.6));
   declare_parameter_if_not_declared(
-    node, plugin_name_ + ".lookahead_time",
-    rclcpp::ParameterValue(1.5));
+    node, plugin_name_ + ".lookahead_time", rclcpp::ParameterValue(1.5));
   declare_parameter_if_not_declared(
     node, plugin_name_ + ".max_angular_vel", rclcpp::ParameterValue(1.0));
   declare_parameter_if_not_declared(
     node, plugin_name_ + ".transform_tolerance", rclcpp::ParameterValue(0.1));
   declare_parameter_if_not_declared(
-    node, plugin_name_ + ".use_velocity_scaled_lookahead_dist", rclcpp::ParameterValue(
-      false));
+    node, plugin_name_ + ".use_velocity_scaled_lookahead_dist",
+    rclcpp::ParameterValue(false));
 
   node->get_parameter(plugin_name_ + ".desired_linear_vel", desired_linear_vel_);
   node->get_parameter(plugin_name_ + ".max_linear_accel", max_linear_accel_);
@@ -167,7 +163,7 @@ geometry_msgs::msg::TwistStamped PurePursuitController::computeVelocityCommands(
 
   // Find look ahead distance and point on path
   const double lookahead_dist = getLookAheadDistance(speed);
-  geometry_msgs::msg::PoseStamped carrot_pose = getLookAheadMarker(lookahead_dist, transformed_plan);
+  auto carrot_pose = getLookAheadMarker(lookahead_dist, transformed_plan);
 
   double linear_vel, angular_vel;
 
@@ -236,7 +232,7 @@ bool PurePursuitController::isCollisionImminent(
   // But we can still use the carrot pose to find quantities and convert to odom.
 
   const double carrot_dist = hypot(carrot_pose.pose.position.x, carrot_pose.pose.position.y);
-  const unsigned int num_pts = static_cast<unsigned int>(ceil(carrot_dist / costmap_->getResolution()));
+  unsigned int num_pts = static_cast<unsigned int>(ceil(carrot_dist / costmap_->getResolution()));
   const double pt_distance = carrot_dist / num_pts;
 
   geometry_msgs::msg::PoseStamped carrot_in_odom;
