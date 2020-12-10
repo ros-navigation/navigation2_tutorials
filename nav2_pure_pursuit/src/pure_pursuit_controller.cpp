@@ -1,9 +1,36 @@
 /*
- * SPDX-License-Identifier: BSD-3-Clause
+ * Software License Agreement (BSD License)
  *
- *  Author(s): Shrijit Singh <shrijitsingh99@gmail.com>
- *  Author(s): Steve Macenski <stevenmacenski@gmail.com>
+ *  Copyright (c) 2020, Shrijit Singh
+ *  Copyright (c) 2020, Samsung Research America
+ *  All rights reserved.
  *
+ *  Redistribution and use in source and binary forms, with or without
+ *  modification, are permitted provided that the following conditions
+ *  are met:
+ *
+ *   * Redistributions of source code must retain the above copyright
+ *     notice, this list of conditions and the following disclaimer.
+ *   * Redistributions in binary form must reproduce the above
+ *     copyright notice, this list of conditions and the following
+ *     disclaimer in the documentation and/or other materials provided
+ *     with the distribution.
+ *   * Neither the name of the copyright holder nor the names of its
+ *     contributors may be used to endorse or promote products derived
+ *     from this software without specific prior written permission.
+ *
+ *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ *  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ *  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+ *  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+ *  COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+ *  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+ *  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ *  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+ *  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ *  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+ *  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ *  POSSIBILITY OF SUCH DAMAGE.
  */
 
 #include <algorithm>
@@ -11,9 +38,9 @@
 #include <memory>
 #include <algorithm>
 
+#include "nav2_pure_pursuit/pure_pursuit_controller.hpp"
 #include "nav2_core/exceptions.hpp"
 #include "nav2_util/node_utils.hpp"
-#include "nav2_pure_pursuit/pure_pursuit_controller.hpp"
 #include "nav2_util/geometry_utils.hpp"
 
 using std::hypot;
@@ -110,6 +137,7 @@ void PurePursuitController::configure(
   transform_tolerance_ = tf2::durationFromSec(transform_tolerance);
 
   global_pub_ = node->create_publisher<nav_msgs::msg::Path>("received_global_plan", 1);
+  carrot_pub_ = node->create_publisher<geometry_msgs::msg::PointStamped>("lookahead_point", 1);
 }
 
 void PurePursuitController::cleanup()
@@ -119,6 +147,7 @@ void PurePursuitController::cleanup()
     "Cleaning up controller: %s of type pure_pursuit_controller::PurePursuitController",
     plugin_name_.c_str());
   global_pub_.reset();
+  carrot_pub_.reset();
 }
 
 void PurePursuitController::activate()
@@ -128,6 +157,7 @@ void PurePursuitController::activate()
     "Activating controller: %s of type pure_pursuit_controller::PurePursuitController\"  %s",
     plugin_name_.c_str());
   global_pub_->on_activate();
+  carrot_pub_->on_activate();
 }
 
 void PurePursuitController::deactivate()
@@ -137,6 +167,7 @@ void PurePursuitController::deactivate()
     "Deactivating controller: %s of type pure_pursuit_controller::PurePursuitController\"  %s",
     plugin_name_.c_str());
   global_pub_->on_deactivate();
+  carrot_pub_->on_deactivate();
 }
 
 double PurePursuitController::getLookAheadDistance(const geometry_msgs::msg::Twist & speed)
@@ -161,9 +192,15 @@ geometry_msgs::msg::TwistStamped PurePursuitController::computeVelocityCommands(
   // Transform path to robot base frame
   auto transformed_plan = transformGlobalPlan(pose);
 
-  // Find look ahead distance and point on path
+  // Find look ahead distance and point on path and publish
   const double lookahead_dist = getLookAheadDistance(speed);
   auto carrot_pose = getLookAheadMarker(lookahead_dist, transformed_plan);
+  auto carrot_msg = std::make_unique<geometry_msgs::msg::PointStamped>();
+  carrot_msg->header = carrot_pose.header;
+  carrot_msg->point.x = carrot_pose.pose.position.x;
+  carrot_msg->point.y = carrot_pose.pose.position.y;
+  carrot_msg->point.z = 0.01;  // publish right over map to stand out
+  carrot_pub_->publish(std::move(carrot_msg));
 
   double linear_vel, angular_vel;
 
@@ -310,7 +347,6 @@ void PurePursuitController::applyKinematicConstraints(
 
 void PurePursuitController::setPlan(const nav_msgs::msg::Path & path)
 {
-  global_pub_->publish(path);
   global_plan_ = path;
 }
 

@@ -4,6 +4,7 @@
   <name>nav2_pure_pursuit</name>
   <version>1.0.0</version>
   <description>Pure pursuit controller</description>
+  <maintainer email="stevenmacenski@gmail.com">Steve Macenski</maintainer>
   <maintainer email="shrijitsingh99@gmail.com">Shrijit Singh</maintainer>
   <license>BSD-3-Clause</license>
 
