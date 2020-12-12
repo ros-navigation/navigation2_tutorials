@@ -60,6 +60,8 @@ namespace nav2_pure_pursuit_controller
 //  kinematic constraints
 //  slowing on approach -- generally speaking working, but not ready yet
 
+// rotate to heading option
+
 /**
  * Find element in iterator with the minimum calculated value
  */
@@ -103,38 +105,35 @@ void PurePursuitController::configure(
   declare_parameter_if_not_declared(
     node, plugin_name_ + ".desired_linear_vel", rclcpp::ParameterValue(0.5));
   declare_parameter_if_not_declared(
-    node, plugin_name_ + ".max_linear_accel", rclcpp::ParameterValue(1.0));
+    node, plugin_name_ + ".max_linear_accel", rclcpp::ParameterValue(2.5));
   declare_parameter_if_not_declared(
-    node, plugin_name_ + ".max_linear_decel", rclcpp::ParameterValue(1.0));
-  declare_parameter_if_not_declared(
-    node, plugin_name_ + ".max_angular_accel", rclcpp::ParameterValue(1.0));
-  declare_parameter_if_not_declared(
-    node, plugin_name_ + ".max_angular_decel", rclcpp::ParameterValue(1.0));
+    node, plugin_name_ + ".max_linear_decel", rclcpp::ParameterValue(2.5));
   declare_parameter_if_not_declared(
     node, plugin_name_ + ".lookahead_dist", rclcpp::ParameterValue(0.6));
   declare_parameter_if_not_declared(
     node, plugin_name_ + ".min_lookahead_dist", rclcpp::ParameterValue(0.3));
   declare_parameter_if_not_declared(
-    node, plugin_name_ + ".max_lookahead_dist", rclcpp::ParameterValue(0.6));
+    node, plugin_name_ + ".max_lookahead_dist", rclcpp::ParameterValue(0.9));
   declare_parameter_if_not_declared(
     node, plugin_name_ + ".lookahead_time", rclcpp::ParameterValue(1.5));
   declare_parameter_if_not_declared(
-    node, plugin_name_ + ".max_angular_vel", rclcpp::ParameterValue(1.0));
+    node, plugin_name_ + ".max_angular_vel", rclcpp::ParameterValue(1.8));
   declare_parameter_if_not_declared(
     node, plugin_name_ + ".transform_tolerance", rclcpp::ParameterValue(0.1));
   declare_parameter_if_not_declared(
     node, plugin_name_ + ".use_velocity_scaled_lookahead_dist",
-    rclcpp::ParameterValue(true));
+    rclcpp::ParameterValue(false));
   declare_parameter_if_not_declared(
     node, plugin_name_ + ".min_approach_vel_scaling", rclcpp::ParameterValue(0.10));
   declare_parameter_if_not_declared(
     node, plugin_name_ + ".approach_vel_scaling", rclcpp::ParameterValue(true));
+  declare_parameter_if_not_declared(
+    node, plugin_name_ + ".max_time_to_collision", rclcpp::ParameterValue(1.0));
+
 
   node->get_parameter(plugin_name_ + ".desired_linear_vel", desired_linear_vel_);
   node->get_parameter(plugin_name_ + ".max_linear_accel", max_linear_accel_);
   node->get_parameter(plugin_name_ + ".max_linear_decel", max_linear_decel_);
-  node->get_parameter(plugin_name_ + ".max_angular_accel", max_angular_accel_);
-  node->get_parameter(plugin_name_ + ".max_angular_decel", max_angular_decel_);
   node->get_parameter(plugin_name_ + ".lookahead_dist", lookahead_dist_);
   node->get_parameter(plugin_name_ + ".min_lookahead_dist", min_lookahead_dist_);
   node->get_parameter(plugin_name_ + ".max_lookahead_dist", max_lookahead_dist_);
@@ -146,10 +145,13 @@ void PurePursuitController::configure(
     use_velocity_scaled_lookahead_dist_);
   node->get_parameter(plugin_name_ + ".min_approach_vel_scaling", min_approach_vel_scaling_);
   node->get_parameter(plugin_name_ + ".approach_vel_scaling", approach_vel_scaling_);
+  node->get_parameter(plugin_name_ + ".max_time_to_collision", max_time_to_collision_);
 
-  std::string wheel_odom_topic;
-  node->get_parameter(plugin_name_ + ".wheel_odom_topic", wheel_odom_topic);
+  double control_frequency = 20.0;
+  node->get_parameter("control_frequency", control_frequency);
+
   transform_tolerance_ = tf2::durationFromSec(transform_tolerance);
+  control_duration_ = 1.0 / control_frequency;
 
   global_pub_ = node->create_publisher<nav_msgs::msg::Path>("received_global_plan", 1);
   carrot_pub_ = node->create_publisher<geometry_msgs::msg::PointStamped>("lookahead_point", 1);
@@ -242,7 +244,7 @@ geometry_msgs::msg::TwistStamped PurePursuitController::computeVelocityCommands(
   // Make sure we're in compliance with basic kinematics
   applyConstraints(
     linear_vel, angular_vel,
-    fabs(lookahead_dist - sqrt(carrot_dist2)), lookahead_dist);
+    fabs(lookahead_dist - sqrt(carrot_dist2)), lookahead_dist, speed);
 
   // Collision checking
   if (isCollisionImminent(pose, carrot_pose, curvature, linear_vel, angular_vel)) {
@@ -327,6 +329,10 @@ bool PurePursuitController::isCollisionImminent(
   curr_pose.theta = tf2::getYaw(robot_pose.pose.orientation);
 
   for (unsigned int i = 1; i < num_pts; i++) {
+    if (i * projection_time > max_time_to_collision_) {
+      break;
+    }
+
     // apply velocity at curr_pose over distance delta_dist
     curr_pose.x += projection_time * (linear_vel * cos(curr_pose.theta));
     curr_pose.y += projection_time * (linear_vel * sin(curr_pose.theta));
@@ -367,18 +373,13 @@ bool PurePursuitController::inCollision(const double & x, const double & y)
 }
 
 // LIN ACCEL
-// ANG ACCEL
 // LIN DECEL
-// ANG DECEL
 // CARROT DIST on approach slow
-
-// how handle active -> pause -> go
-//            go -> preempt -> go
-//            go -> pause -> go
 
 void PurePursuitController::applyConstraints(
   double & linear_vel, double & angular_vel,
-  const double & dist_error, const double & lookahead_dist)
+  const double & dist_error, const double & lookahead_dist,
+  const geometry_msgs::msg::Twist & curr_speed)
 {
   // if the actual lookahead distance is shorter than requested, that means we're at the
   // end of the path. We'll scale linear velocity by error to slow to a smooth stop
@@ -390,35 +391,24 @@ void PurePursuitController::applyConstraints(
     linear_vel = linear_vel * velocity_scaling;
   }
 
-  // TODO try to apply those inverse contraints on linear velocity when curvature is high?
+  // make sure linear velocities are kinematically feasible, v = v0 + a*t
+  double & dt = control_duration_;
+  const double max_feasible_linear_speed = curr_speed.linear.x + max_linear_accel_ * dt;
+  const double min_feasible_linear_speed = curr_speed.linear.x - max_linear_decel_ * dt;
+  linear_vel = std::clamp(linear_vel, min_feasible_linear_speed, max_feasible_linear_speed);
 
+  // for the moment, no smoothing on angular velocities, we find the existing
+  // commands are very smooth and we don't want to artifically reduce them if the hardware
+  // can handle it. Plus deviating from the commands here can be collision-inducing if users
+  // don't properly set these values, so hiding that complexity from them that would likely
+  // become the #1 cause of issues.
+  // const double max_feasible_angular_speed = curr_speed.angular.z + angular_accel_ * dt;
+  // const double min_feasible_angular_speed = curr_speed.angular.z - angular_accel_ * dt;
+  // angular_vel = std::clamp(angular_vel, min_feasible_angular_speed, max_feasible_angular_speed);
 
-
-  // using the odom smoother has failed, go back to command-based kinematics
-    // but how deal with edge cases above? (in set plan if stamp > N s, reset to curret odom?)
-  // double & dt = control_duration_;
-
-  // // if we're accelerating or decelerating too fast, limit linear velocity
-  // double measured_lin_accel = (linear_vel - last_odom_.linear.x) / dt;
-  // std::cout << "Dt: " << dt << " linV: " << linear_vel << " last linV: " << last_odom_.linear.x << " accel: " << measured_lin_accel << std::endl;
-  // if (measured_lin_accel > max_linear_accel_) {
-  //   linear_vel = last_odom_.linear.x + max_linear_accel_ * dt;
-  // } else if (measured_lin_accel < -max_linear_decel_) {
-  //   linear_vel = last_odom_.linear.x - max_linear_decel_ * dt;
-  // }
-
-  // // if we're accelerating or decelerating too fast, limit angular velocity
-  // double measured_ang_accel = (angular_vel - last_odom_.angular.z) / dt;
-  // std::cout << "Dt: " << dt << " angV: " << angular_vel << " last angV: " << last_odom_.angular.z << " accel: " << measured_ang_accel << std::endl;
-  // if (measured_ang_accel > max_angular_accel_) {
-  //   angular_vel = last_odom_.angular.z + max_angular_accel_ * dt;
-  // } else if (measured_ang_accel < -max_angular_decel_) {
-  //   angular_vel = last_odom_.angular.z - max_angular_decel_ * dt;
-  // }
-
-  // make sure in range of valid velocities
-  angular_vel = std::clamp(angular_vel, -max_angular_vel_, max_angular_vel_);
+  // make sure in range of generally valid velocities
   linear_vel = std::clamp(linear_vel, 0.0, desired_linear_vel_);
+  angular_vel = std::clamp(angular_vel, -max_angular_vel_, max_angular_vel_);
 }
 
 void PurePursuitController::setPlan(const nav_msgs::msg::Path & path)
