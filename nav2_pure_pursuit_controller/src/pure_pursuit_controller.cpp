@@ -38,7 +38,7 @@
 #include <memory>
 #include <algorithm>
 
-#include "nav2_pure_pursuit/pure_pursuit_controller.hpp"
+#include "nav2_pure_pursuit_controller/pure_pursuit_controller.hpp"
 #include "nav2_core/exceptions.hpp"
 #include "nav2_util/node_utils.hpp"
 #include "nav2_util/geometry_utils.hpp"
@@ -52,6 +52,14 @@ using nav2_util::geometry_utils::euclidean_distance;
 
 namespace nav2_pure_pursuit_controller
 {
+
+// TEST 
+//  general performance: follows path well, doesn't veer off, defaults, can get on path OK
+//    make it so able to scale down linear velocity on sharper turn to make sure it can match?
+
+//  kinematic constraints
+//  slowing on approach -- generally speaking working, but not ready yet
+//  dynamic scaling look ahead
 
 /**
  * Find element in iterator with the minimum calculated value
@@ -92,7 +100,6 @@ void PurePursuitController::configure(
   plugin_name_ = name;
   logger_ = node->get_logger();
   clock_ = node->get_clock();
-  last_cmd_.header.stamp = clock_->now();
 
   declare_parameter_if_not_declared(
     node, plugin_name_ + ".desired_linear_vel", rclcpp::ParameterValue(0.5));
@@ -105,7 +112,7 @@ void PurePursuitController::configure(
   declare_parameter_if_not_declared(
     node, plugin_name_ + ".max_angular_decel", rclcpp::ParameterValue(1.0));
   declare_parameter_if_not_declared(
-    node, plugin_name_ + ".lookahead_dist", rclcpp::ParameterValue(0.4));
+    node, plugin_name_ + ".lookahead_dist", rclcpp::ParameterValue(0.6));
   declare_parameter_if_not_declared(
     node, plugin_name_ + ".min_lookahead_dist", rclcpp::ParameterValue(0.3));
   declare_parameter_if_not_declared(
@@ -118,7 +125,11 @@ void PurePursuitController::configure(
     node, plugin_name_ + ".transform_tolerance", rclcpp::ParameterValue(0.1));
   declare_parameter_if_not_declared(
     node, plugin_name_ + ".use_velocity_scaled_lookahead_dist",
-    rclcpp::ParameterValue(false));
+    rclcpp::ParameterValue(true));
+  declare_parameter_if_not_declared(
+    node, plugin_name_ + ".min_approach_vel_scaling", rclcpp::ParameterValue(0.10));
+  declare_parameter_if_not_declared(
+    node, plugin_name_ + ".approach_vel_scaling", rclcpp::ParameterValue(true));
 
   node->get_parameter(plugin_name_ + ".desired_linear_vel", desired_linear_vel_);
   node->get_parameter(plugin_name_ + ".max_linear_accel", max_linear_accel_);
@@ -134,10 +145,16 @@ void PurePursuitController::configure(
   node->get_parameter(plugin_name_ + ".transform_tolerance", transform_tolerance);
   node->get_parameter(plugin_name_ + ".use_velocity_scaled_lookahead_dist",
     use_velocity_scaled_lookahead_dist_);
+  node->get_parameter(plugin_name_ + ".min_approach_vel_scaling", min_approach_vel_scaling_);
+  node->get_parameter(plugin_name_ + ".approach_vel_scaling", approach_vel_scaling_);
+
+  std::string wheel_odom_topic;
+  node->get_parameter(plugin_name_ + ".wheel_odom_topic", wheel_odom_topic);
   transform_tolerance_ = tf2::durationFromSec(transform_tolerance);
 
   global_pub_ = node->create_publisher<nav_msgs::msg::Path>("received_global_plan", 1);
   carrot_pub_ = node->create_publisher<geometry_msgs::msg::PointStamped>("lookahead_point", 1);
+  carrot_arc_pub_ = node->create_publisher<nav_msgs::msg::Path>("lookahead_collision_arc", 1);
 }
 
 void PurePursuitController::cleanup()
@@ -148,6 +165,7 @@ void PurePursuitController::cleanup()
     plugin_name_.c_str());
   global_pub_.reset();
   carrot_pub_.reset();
+  carrot_arc_pub_.reset();
 }
 
 void PurePursuitController::activate()
@@ -158,6 +176,7 @@ void PurePursuitController::activate()
     plugin_name_.c_str());
   global_pub_->on_activate();
   carrot_pub_->on_activate();
+  carrot_arc_pub_->on_activate();
 }
 
 void PurePursuitController::deactivate()
@@ -168,6 +187,7 @@ void PurePursuitController::deactivate()
     plugin_name_.c_str());
   global_pub_->on_deactivate();
   carrot_pub_->on_deactivate();
+  carrot_arc_pub_->on_deactivate();
 }
 
 double PurePursuitController::getLookAheadDistance(const geometry_msgs::msg::Twist & speed)
@@ -205,11 +225,12 @@ geometry_msgs::msg::TwistStamped PurePursuitController::computeVelocityCommands(
   double linear_vel, angular_vel;
 
   // Find distance^2 to look ahead point (carrot) in robot base frame
+  // This is the chord length of the circle
   const double carrot_dist2 =
     (carrot_pose.pose.position.x * carrot_pose.pose.position.x) +
     (carrot_pose.pose.position.y * carrot_pose.pose.position.y);
 
-  // Find curvature of circular arc
+  // Find curvature of circle (k = 1 / R)
   double curvature = 0.0;
   if (carrot_dist2 > 0.001) {
     curvature = 2.0 * carrot_pose.pose.position.y / carrot_dist2;
@@ -220,13 +241,12 @@ geometry_msgs::msg::TwistStamped PurePursuitController::computeVelocityCommands(
   angular_vel = desired_linear_vel_ * curvature;
 
   // Make sure we're in compliance with basic kinematics
-  rclcpp::Duration dt = rclcpp::Time(pose.header.stamp) - rclcpp::Time(last_cmd_.header.stamp);
-  applyKinematicConstraints(
+  applyConstraints(
     linear_vel, angular_vel,
-    fabs(lookahead_dist - sqrt(carrot_dist2)), lookahead_dist, dt.seconds());
+    fabs(lookahead_dist - sqrt(carrot_dist2)), lookahead_dist);
 
   // Collision checking
-  if (isCollisionImminent(pose, carrot_pose)) {
+  if (isCollisionImminent(pose, carrot_pose, curvature, linear_vel, angular_vel)) {
     RCLCPP_ERROR(logger_, "Collision imminent!");
     throw std::runtime_error("PurePursuitController detected collision ahead!");
   }
@@ -237,7 +257,6 @@ geometry_msgs::msg::TwistStamped PurePursuitController::computeVelocityCommands(
   cmd_vel.header.stamp = clock_->now();
   cmd_vel.twist.linear.x = linear_vel;
   cmd_vel.twist.angular.z = angular_vel;
-  last_cmd_ = cmd_vel;
   return cmd_vel;
 }
 
@@ -261,16 +280,14 @@ geometry_msgs::msg::PoseStamped PurePursuitController::getLookAheadMarker(
 
 bool PurePursuitController::isCollisionImminent(
   const geometry_msgs::msg::PoseStamped & robot_pose,
-  const geometry_msgs::msg::PoseStamped & carrot_pose)
+  const geometry_msgs::msg::PoseStamped & carrot_pose,
+  const double & curvature, const double & linear_vel,
+  const double & angular_vel)
 {
   // This may be a bit unusual, but the robot_pose is in odom frame
   // and the carrot_pose is in robot base frame. We need to collision
   // check in odom frame, so all values will be relative to robot base pose.
-  // But we can still use the carrot pose to find quantities and convert to odom.
-
-  const double carrot_dist = hypot(carrot_pose.pose.position.x, carrot_pose.pose.position.y);
-  unsigned int num_pts = static_cast<unsigned int>(ceil(carrot_dist / costmap_->getResolution()));
-  const double pt_distance = carrot_dist / num_pts;
+  // But we can still use the carrot pose in odom to find various quantities.
 
   geometry_msgs::msg::PoseStamped carrot_in_odom;
   if (!transformPose(costmap_ros_->getGlobalFrameID(), carrot_pose, carrot_in_odom))
@@ -279,21 +296,57 @@ bool PurePursuitController::isCollisionImminent(
     return true;
   }
 
-  geometry_msgs::msg::Vector3 unit_vector;
-  unit_vector.x = (carrot_in_odom.pose.position.x - robot_pose.pose.position.x) / carrot_dist;
-  unit_vector.y = (carrot_in_odom.pose.position.y - robot_pose.pose.position.y) / carrot_dist;
+  // check current point and carrot point are OK, most likely ones to be in collision
+  if (inCollision(carrot_in_odom.pose.position.x, carrot_in_odom.pose.position.y) ||
+    inCollision(robot_pose.pose.position.x, robot_pose.pose.position.y))
+  {
+    return true;
+  }
 
-  double curr_dist;
-  geometry_msgs::msg::Vector3 cur_pt;
+  // debug messages
+  nav_msgs::msg::Path arc_pts_msg;
+  arc_pts_msg.header.frame_id = costmap_ros_->getGlobalFrameID();
+  arc_pts_msg.header.stamp = clock_->now();
+  geometry_msgs::msg::PoseStamped pose_msg;
+  pose_msg.header.frame_id = arc_pts_msg.header.frame_id;
+  pose_msg.header.stamp = arc_pts_msg.header.stamp;
 
-  for (unsigned int i = 0; i != num_pts; i++) {
-    curr_dist = i * pt_distance;
-    cur_pt.x = robot_pose.pose.position.x + (curr_dist * unit_vector.x);
-    cur_pt.y = robot_pose.pose.position.y + (curr_dist * unit_vector.y);
-    if (inCollision(cur_pt.x, cur_pt.y)) {
+  // Using curvature (k = 1 / R) and carrot distance (chord on circle R), project the command
+  const double chord_len = hypot(carrot_pose.pose.position.x, carrot_pose.pose.position.y);
+
+  // Find the number of increments by finding the arc length of the chord on circle
+  const double r = 1 / curvature;
+  const double alpha = 2.0 * asin(chord_len / (2 * r)); // central angle
+  const double arc_len = alpha * r;
+  const double delta_dist = costmap_->getResolution();
+  const unsigned int num_pts = static_cast<unsigned int>(ceil(arc_len / delta_dist));
+  const double projection_time = costmap_->getResolution() / linear_vel;
+
+  geometry_msgs::msg::Pose2D curr_pose;
+  curr_pose.x = robot_pose.pose.position.x;
+  curr_pose.y = robot_pose.pose.position.y;
+  curr_pose.theta = tf2::getYaw(robot_pose.pose.orientation);
+
+  for (unsigned int i = 1; i < num_pts; i++) {
+    // apply velocity at curr_pose over distance delta_dist
+    curr_pose.x += projection_time * (linear_vel * cos(curr_pose.theta));
+    curr_pose.y += projection_time * (linear_vel * sin(curr_pose.theta));
+    curr_pose.theta += projection_time * angular_vel;
+
+    // store it for visualization
+    pose_msg.pose.position.x = curr_pose.x;
+    pose_msg.pose.position.y = curr_pose.y;
+    pose_msg.pose.position.z = 0.01;
+    arc_pts_msg.poses.push_back(pose_msg);
+
+    // check for collision at this point
+    if (inCollision(curr_pose.x, curr_pose.y)) {
+      carrot_arc_pub_->publish(arc_pts_msg);
       return true;
     }
   }
+
+  carrot_arc_pub_->publish(arc_pts_msg);
 
   return false;
 }
@@ -314,31 +367,55 @@ bool PurePursuitController::inCollision(const double & x, const double & y)
   }
 }
 
-void PurePursuitController::applyKinematicConstraints(
+// LIN ACCEL
+// ANG ACCEL
+// LIN DECEL
+// ANG DECEL
+// CARROT DIST on approach slow
+
+// how handle active -> pause -> go
+//            go -> preempt -> go
+//            go -> pause -> go
+
+void PurePursuitController::applyConstraints(
   double & linear_vel, double & angular_vel,
-  const double & dist_error, const double & lookahead_dist, const double & dt)
+  const double & dist_error, const double & lookahead_dist)
 {
   // if the actual lookahead distance is shorter than requested, that means we're at the
   // end of the path. We'll scale linear velocity by error to slow to a smooth stop
-  if (dist_error > 2.0 * costmap_->getResolution()) {
-    linear_vel = linear_vel * (dist_error / lookahead_dist);
+  if (approach_vel_scaling_ && dist_error > 2.0 * costmap_->getResolution()) {
+    double velocity_scaling = 1.0 - (dist_error / lookahead_dist);
+    if (velocity_scaling < min_approach_vel_scaling_) {
+      velocity_scaling = min_approach_vel_scaling_;
+    }
+    linear_vel = linear_vel * velocity_scaling;
   }
 
-  // if we're accelerating or decelerating too fast, limit linear velocity
-  double measured_lin_accel = (linear_vel - last_cmd_.twist.linear.x) / dt;
-  if (measured_lin_accel > max_linear_accel_) {
-    linear_vel = last_cmd_.twist.linear.x + max_linear_accel_ * dt;
-  } else if (measured_lin_accel < -max_linear_decel_) {
-    linear_vel = last_cmd_.twist.linear.x - max_linear_decel_ * dt;
-  }
+  // TODO try to apply those inverse contraints on linear velocity when curvature is high?
 
-  // if we're accelerating or decelerating too fast, limit angular velocity
-  double measured_ang_accel = (angular_vel - last_cmd_.twist.angular.z) / dt;
-  if (measured_ang_accel > max_angular_accel_) {
-    angular_vel = last_cmd_.twist.angular.z + max_angular_accel_ * dt;
-  } else if (measured_ang_accel < -max_angular_decel_) {
-    angular_vel = last_cmd_.twist.angular.z - max_angular_decel_ * dt;
-  }
+
+
+  // using the odom smoother has failed, go back to command-based kinematics
+    // but how deal with edge cases above? (in set plan if stamp > N s, reset to curret odom?)
+  // double & dt = control_duration_;
+
+  // // if we're accelerating or decelerating too fast, limit linear velocity
+  // double measured_lin_accel = (linear_vel - last_odom_.linear.x) / dt;
+  // std::cout << "Dt: " << dt << " linV: " << linear_vel << " last linV: " << last_odom_.linear.x << " accel: " << measured_lin_accel << std::endl;
+  // if (measured_lin_accel > max_linear_accel_) {
+  //   linear_vel = last_odom_.linear.x + max_linear_accel_ * dt;
+  // } else if (measured_lin_accel < -max_linear_decel_) {
+  //   linear_vel = last_odom_.linear.x - max_linear_decel_ * dt;
+  // }
+
+  // // if we're accelerating or decelerating too fast, limit angular velocity
+  // double measured_ang_accel = (angular_vel - last_odom_.angular.z) / dt;
+  // std::cout << "Dt: " << dt << " angV: " << angular_vel << " last angV: " << last_odom_.angular.z << " accel: " << measured_ang_accel << std::endl;
+  // if (measured_ang_accel > max_angular_accel_) {
+  //   angular_vel = last_odom_.angular.z + max_angular_accel_ * dt;
+  // } else if (measured_ang_accel < -max_angular_decel_) {
+  //   angular_vel = last_odom_.angular.z - max_angular_decel_ * dt;
+  // }
 
   // make sure in range of valid velocities
   angular_vel = std::clamp(angular_vel, -max_angular_vel_, max_angular_vel_);

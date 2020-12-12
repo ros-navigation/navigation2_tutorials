@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.5)
-project(nav2_pure_pursuit)
+project(nav2_pure_pursuit_controller)
 
 find_package(ament_cmake REQUIRED)
 find_package(nav2_common REQUIRED)
@@ -61,7 +61,7 @@ ament_export_include_directories(include)
 ament_export_libraries(nav2_pure_pursuit_controller)
 ament_export_dependencies(${dependencies})
 
-pluginlib_export_plugin_description_file(nav2_core nav2_pure_pursuit.xml)
+pluginlib_export_plugin_description_file(nav2_core nav2_pure_pursuit_controller.xml)
 
 ament_package()
 

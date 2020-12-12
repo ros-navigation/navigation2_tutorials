@@ -33,8 +33,8 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef NAV2_PURE_PURSUIT__PURE_PURSUIT_CONTROLLER_HPP_
-#define NAV2_PURE_PURSUIT__PURE_PURSUIT_CONTROLLER_HPP_
+#ifndef NAV2_PURE_PURSUIT_CONTROLLER__PURE_PURSUIT_CONTROLLER_HPP_
+#define NAV2_PURE_PURSUIT_CONTROLLER__PURE_PURSUIT_CONTROLLER_HPP_
 
 #include <string>
 #include <vector>
@@ -45,6 +45,8 @@
 #include "rclcpp/rclcpp.hpp"
 #include "pluginlib/class_loader.hpp"
 #include "pluginlib/class_list_macros.hpp"
+#include "nav2_util/odometry_utils.hpp"
+#include "geometry_msgs/msg/pose2_d.hpp"
 
 namespace nav2_pure_pursuit_controller
 {
@@ -81,12 +83,15 @@ protected:
 
   double getLookAheadDistance(const geometry_msgs::msg::Twist &);
 
-  bool isCollisionImminent(const geometry_msgs::msg::PoseStamped &, const geometry_msgs::msg::PoseStamped &);
+  bool isCollisionImminent(
+    const geometry_msgs::msg::PoseStamped &,
+    const geometry_msgs::msg::PoseStamped &,
+    const double &, const double &, const double &);
   bool inCollision(const double & x, const double & y);
 
-  void applyKinematicConstraints(
+  void applyConstraints(
     double & linear_vel, double & angular_vel,
-    const double & dist_error, const double & lookahead_dist, const double & dt);
+    const double & dist_error, const double & lookahead_dist);
 
   geometry_msgs::msg::PoseStamped getLookAheadMarker(const double &, const nav_msgs::msg::Path &);
 
@@ -110,11 +115,13 @@ protected:
   double max_angular_decel_;
   bool use_velocity_scaled_lookahead_dist_;
   tf2::Duration transform_tolerance_;
-  geometry_msgs::msg::TwistStamped last_cmd_;
+  bool approach_vel_scaling_;
+  double min_approach_vel_scaling_;
 
   nav_msgs::msg::Path global_plan_;
   std::shared_ptr<rclcpp_lifecycle::LifecyclePublisher<nav_msgs::msg::Path>> global_pub_;
   std::shared_ptr<rclcpp_lifecycle::LifecyclePublisher<geometry_msgs::msg::PointStamped>> carrot_pub_;
+  std::shared_ptr<rclcpp_lifecycle::LifecyclePublisher<nav_msgs::msg::Path>> carrot_arc_pub_;
 };
 
 }  // namespace nav2_pure_pursuit_controller
