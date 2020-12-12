@@ -117,7 +117,7 @@ protected:
   bool approach_vel_scaling_;
   double min_approach_vel_scaling_;
   double control_duration_;
-  double max_time_to_collision_;
+  double max_allowed_time_to_collision;
 
   nav_msgs::msg::Path global_plan_;
   std::shared_ptr<rclcpp_lifecycle::LifecyclePublisher<nav_msgs::msg::Path>> global_pub_;

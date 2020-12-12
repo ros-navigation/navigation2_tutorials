@@ -128,7 +128,7 @@ void PurePursuitController::configure(
   declare_parameter_if_not_declared(
     node, plugin_name_ + ".approach_vel_scaling", rclcpp::ParameterValue(true));
   declare_parameter_if_not_declared(
-    node, plugin_name_ + ".max_time_to_collision", rclcpp::ParameterValue(1.0));
+    node, plugin_name_ + ".max_allowed_time_to_collision", rclcpp::ParameterValue(0.25));
 
 
   node->get_parameter(plugin_name_ + ".desired_linear_vel", desired_linear_vel_);
@@ -145,7 +145,7 @@ void PurePursuitController::configure(
     use_velocity_scaled_lookahead_dist_);
   node->get_parameter(plugin_name_ + ".min_approach_vel_scaling", min_approach_vel_scaling_);
   node->get_parameter(plugin_name_ + ".approach_vel_scaling", approach_vel_scaling_);
-  node->get_parameter(plugin_name_ + ".max_time_to_collision", max_time_to_collision_);
+  node->get_parameter(plugin_name_ + ".max_allowed_time_to_collision", max_allowed_time_to_collision_);
 
   double control_frequency = 20.0;
   node->get_parameter("control_frequency", control_frequency);
@@ -329,7 +329,7 @@ bool PurePursuitController::isCollisionImminent(
   curr_pose.theta = tf2::getYaw(robot_pose.pose.orientation);
 
   for (unsigned int i = 1; i < num_pts; i++) {
-    if (i * projection_time > max_time_to_collision_) {
+    if (i * projection_time > max_allowed_time_to_collision) {
       break;
     }
 
