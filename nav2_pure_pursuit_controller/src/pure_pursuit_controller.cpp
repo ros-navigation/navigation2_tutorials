@@ -59,7 +59,6 @@ namespace nav2_pure_pursuit_controller
 
 //  kinematic constraints
 //  slowing on approach -- generally speaking working, but not ready yet
-//  dynamic scaling look ahead
 
 /**
  * Find element in iterator with the minimum calculated value
