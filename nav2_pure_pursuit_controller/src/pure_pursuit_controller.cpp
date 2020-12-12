@@ -53,15 +53,6 @@ using nav2_util::geometry_utils::euclidean_distance;
 namespace nav2_pure_pursuit_controller
 {
 
-// TEST 
-//  general performance: follows path well, doesn't veer off, defaults, can get on path OK
-//    make it so able to scale down linear velocity on sharper turn to make sure it can match?
-
-//  kinematic constraints
-//  slowing on approach -- generally speaking working, but not ready yet
-
-// rotate to heading option
-
 /**
  * Find element in iterator with the minimum calculated value
  */
@@ -128,7 +119,7 @@ void PurePursuitController::configure(
   declare_parameter_if_not_declared(
     node, plugin_name_ + ".approach_vel_scaling", rclcpp::ParameterValue(true));
   declare_parameter_if_not_declared(
-    node, plugin_name_ + ".max_allowed_time_to_collision", rclcpp::ParameterValue(0.25));
+    node, plugin_name_ + ".max_allowed_time_to_collision", rclcpp::ParameterValue(1.0));
 
 
   node->get_parameter(plugin_name_ + ".desired_linear_vel", desired_linear_vel_);
@@ -241,12 +232,12 @@ geometry_msgs::msg::TwistStamped PurePursuitController::computeVelocityCommands(
   linear_vel = desired_linear_vel_;
   angular_vel = desired_linear_vel_ * curvature;
 
-  // Make sure we're in compliance with basic kinematics
+  // Make sure we're in compliance with basic constraints
   applyConstraints(
     linear_vel, angular_vel,
     fabs(lookahead_dist - sqrt(carrot_dist2)), lookahead_dist, speed);
 
-  // Collision checking
+  // Collision checking on this velocity heading
   if (isCollisionImminent(pose, carrot_pose, curvature, linear_vel, angular_vel)) {
     RCLCPP_ERROR(logger_, "Collision imminent!");
     throw std::runtime_error("PurePursuitController detected collision ahead!");
@@ -329,7 +320,8 @@ bool PurePursuitController::isCollisionImminent(
   curr_pose.theta = tf2::getYaw(robot_pose.pose.orientation);
 
   for (unsigned int i = 1; i < num_pts; i++) {
-    if (i * projection_time > max_allowed_time_to_collision) {
+    // only forward simulate within time requested
+    if (i * projection_time > max_allowed_time_to_collision_) {
       break;
     }
 
@@ -372,10 +364,6 @@ bool PurePursuitController::inCollision(const double & x, const double & y)
   }
 }
 
-// LIN ACCEL
-// LIN DECEL
-// CARROT DIST on approach slow
-
 void PurePursuitController::applyConstraints(
   double & linear_vel, double & angular_vel,
   const double & dist_error, const double & lookahead_dist,
@@ -397,7 +385,7 @@ void PurePursuitController::applyConstraints(
   const double min_feasible_linear_speed = curr_speed.linear.x - max_linear_decel_ * dt;
   linear_vel = std::clamp(linear_vel, min_feasible_linear_speed, max_feasible_linear_speed);
 
-  // for the moment, no smoothing on angular velocities, we find the existing
+  // Note(stevemacenski): for the moment, no smoothing on angular velocities, we find the existing
   // commands are very smooth and we don't want to artifically reduce them if the hardware
   // can handle it. Plus deviating from the commands here can be collision-inducing if users
   // don't properly set these values, so hiding that complexity from them that would likely
