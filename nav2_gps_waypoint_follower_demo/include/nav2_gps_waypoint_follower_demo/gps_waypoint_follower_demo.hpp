@@ -25,7 +25,9 @@
 #include "geometry_msgs/msg/point32.hpp"
 #include "nav2_waypoint_follower/waypoint_follower.hpp"
 #include "nav2_msgs/action/follow_gps_waypoints.hpp"
-
+#include "tf2/LinearMath/Quaternion.h"
+#include "tf2/convert.h"
+#include "tf2_geometry_msgs/tf2_geometry_msgs.h"
 /**
  * @brief namespace for way point following, points are from a yaml file
  *
