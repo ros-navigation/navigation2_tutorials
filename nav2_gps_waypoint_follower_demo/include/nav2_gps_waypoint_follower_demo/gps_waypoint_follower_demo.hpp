@@ -80,12 +80,12 @@ public:
   bool is_goal_done() const;
 
   /**
- * @brief given a parameter name on the yaml file, loads this parameter as sensor_msgs::msg::NavSatFix
+ * @brief given a parameter name on the yaml file, loads this parameter as nav2_msgs::msg::OrientedNavSatFix
  *  Note that this parameter needs to be an array of doubles
  *
- * @return sensor_msgs::msg::NavSatFix
+ * @return nav2_msgs::msg::OrientedNavSatFix
  */
-  std::vector<sensor_msgs::msg::NavSatFix>
+  std::vector<nav2_msgs::msg::OrientedNavSatFix>
   loadGPSWaypointsFromYAML();
 
   void goalResponseCallback(GPSWaypointFollowerGoalHandle::SharedPtr goal_handle);
@@ -108,7 +108,7 @@ protected:
 
   GPSWaypointFollowerGoalHandle::SharedPtr gps_waypoint_follower_goalhandle_;
 
-  std::vector<sensor_msgs::msg::NavSatFix> gps_waypoints_from_yaml_;
+  std::vector<nav2_msgs::msg::OrientedNavSatFix> gps_poses_from_yaml_;
 };
 }  // namespace nav2_gps_waypoint_follower_demo
 
