@@ -255,8 +255,7 @@ geometry_msgs::msg::TwistStamped PurePursuitController::computeVelocityCommands(
 
   // populate and return message
   geometry_msgs::msg::TwistStamped cmd_vel;
-  cmd_vel.header.frame_id = pose.header.frame_id;
-  cmd_vel.header.stamp = clock_->now();
+  cmd_vel.header = pose.header;
   cmd_vel.twist.linear.x = linear_vel;
   cmd_vel.twist.angular.z = angular_vel;
   return cmd_vel;
