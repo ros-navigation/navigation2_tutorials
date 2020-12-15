@@ -404,7 +404,7 @@ void PurePursuitController::applyConstraints(
     // range, above 128 is possibly inscribed, so it should max out at 128 to be a minimum speed
     // in when in questionable states. This creates a linear mapping of
     // cost [0, 128] to speed [min regulated speed, linear vel]
-    double max_non_collision = 128.0
+    double max_non_collision = 128.0;
     if (pose_cost > max_non_collision) {
       linear_vel = regulated_linear_scaling_min_speed_;
     } else {
