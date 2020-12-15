@@ -88,11 +88,13 @@ protected:
     const geometry_msgs::msg::PoseStamped &,
     const double &, const double &, const double &);
   bool inCollision(const double & x, const double & y);
+  double costAtPose(const double & x, const double & y);
 
   void applyConstraints(
     double & linear_vel, double & angular_vel,
     const double & dist_error, const double & lookahead_dist,
-    const double & curvature, const geometry_msgs::msg::Twist & speed);
+    const double & curvature, const geometry_msgs::msg::Twist & speed,
+    const double & pose_cost);
 
   geometry_msgs::msg::PoseStamped getLookAheadMarker(const double &, const nav_msgs::msg::Path &);
 
@@ -118,9 +120,9 @@ protected:
   double min_approach_vel_scaling_;
   double control_duration_;
   double max_allowed_time_to_collision_;
-  bool use_linear_velocity_scaling_;
-  double restricted_linear_scaling_min_radius_;
-  double restricted_linear_scaling_min_speed_;
+  bool use_regulated_linear_velocity_scaling_;
+  double regulated_linear_scaling_min_radius_;
+  double regulated_linear_scaling_min_speed_;
 
   nav_msgs::msg::Path global_plan_;
   std::shared_ptr<rclcpp_lifecycle::LifecyclePublisher<nav_msgs::msg::Path>> global_pub_;

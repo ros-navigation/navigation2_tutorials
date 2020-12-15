@@ -49,6 +49,7 @@ using std::max;
 using std::abs;
 using nav2_util::declare_parameter_if_not_declared;
 using nav2_util::geometry_utils::euclidean_distance;
+using namespace nav2_costmap_2d;  // NOLINT
 
 namespace nav2_pure_pursuit_controller
 {
@@ -124,11 +125,11 @@ void PurePursuitController::configure(
   declare_parameter_if_not_declared(
     node, plugin_name_ + ".max_allowed_time_to_collision", rclcpp::ParameterValue(1.0));
   declare_parameter_if_not_declared(
-    node, plugin_name_ + ".use_restricted_linear_velocity_scaling", rclcpp::ParameterValue(true));
+    node, plugin_name_ + ".use_regulated_linear_velocity_scaling", rclcpp::ParameterValue(true));
   declare_parameter_if_not_declared(
-    node, plugin_name_ + ".restricted_linear_scaling_min_radius", rclcpp::ParameterValue(0.90));
+    node, plugin_name_ + ".regulated_linear_scaling_min_radius", rclcpp::ParameterValue(0.90));
   declare_parameter_if_not_declared(
-    node, plugin_name_ + ".restricted_linear_scaling_min_speed", rclcpp::ParameterValue(0.25));
+    node, plugin_name_ + ".regulated_linear_scaling_min_speed", rclcpp::ParameterValue(0.25));
 
   node->get_parameter(plugin_name_ + ".desired_linear_vel", desired_linear_vel_);
   node->get_parameter(plugin_name_ + ".max_linear_accel", max_linear_accel_);
@@ -141,12 +142,12 @@ void PurePursuitController::configure(
   node->get_parameter(plugin_name_ + ".transform_tolerance", transform_tolerance);
   node->get_parameter(plugin_name_ + ".use_velocity_scaled_lookahead_dist",
     use_velocity_scaled_lookahead_dist_);
-  node->get_parameter(plugin_name_ + ".min_approach_vel_scaling", min_approach_vel_scaling_);
+  node->get_parameter(plugin_name_ + ".min_approach_vel_scaling", min_approach_vel_scaling_); // TODO use an absolute velocity rather than a %?
   node->get_parameter(plugin_name_ + ".use_approach_linear_velocity_scaling", use_approach_vel_scaling_);
   node->get_parameter(plugin_name_ + ".max_allowed_time_to_collision", max_allowed_time_to_collision_);
-  node->get_parameter(plugin_name_ + ".use_restricted_linear_velocity_scaling", use_linear_velocity_scaling_);
-  node->get_parameter(plugin_name_ + ".restricted_linear_scaling_min_radius", restricted_linear_scaling_min_radius_);
-  node->get_parameter(plugin_name_ + ".restricted_linear_scaling_min_speed", restricted_linear_scaling_min_speed_);
+  node->get_parameter(plugin_name_ + ".use_regulated_linear_velocity_scaling", use_regulated_linear_velocity_scaling_);
+  node->get_parameter(plugin_name_ + ".regulated_linear_scaling_min_radius", regulated_linear_scaling_min_radius_);
+  node->get_parameter(plugin_name_ + ".regulated_linear_scaling_min_speed", regulated_linear_scaling_min_speed_);
   node->get_parameter("control_frequency", control_frequency);
 
   transform_tolerance_ = tf2::durationFromSec(transform_tolerance);
@@ -193,7 +194,7 @@ void PurePursuitController::deactivate()
 double PurePursuitController::getLookAheadDistance(const geometry_msgs::msg::Twist & speed)
 {
   // If using velocity-scaled look ahead distances, find and clamp the dist
-  // Else, use the default look ahead distance
+  // Else, use the static look ahead distance
   double lookahead_dist = 0.0;
   if (use_velocity_scaled_lookahead_dist_) {
     lookahead_dist = speed.linear.x * lookahead_time_;
@@ -243,7 +244,8 @@ geometry_msgs::msg::TwistStamped PurePursuitController::computeVelocityCommands(
   // Make sure we're in compliance with basic constraints
   applyConstraints(
     linear_vel, angular_vel,
-    fabs(lookahead_dist - sqrt(carrot_dist2)), lookahead_dist, curvature, speed);
+    fabs(lookahead_dist - sqrt(carrot_dist2)), lookahead_dist, curvature, speed,
+    costAtPose(pose.pose.position.x, pose.pose.position.y));
 
   // Collision checking on this velocity heading
   if (isCollisionImminent(pose, carrot_pose, curvature, linear_vel, angular_vel)) {
@@ -358,8 +360,6 @@ bool PurePursuitController::isCollisionImminent(
 
 bool PurePursuitController::inCollision(const double & x, const double & y)
 {
-  using namespace nav2_costmap_2d;  // NOLINT
-
   unsigned int mx, my;
   costmap_->worldToMap(x, y, mx, my);
 
@@ -372,11 +372,48 @@ bool PurePursuitController::inCollision(const double & x, const double & y)
   }
 }
 
+double PurePursuitController::costAtPose(const double & x, const double & y)
+{
+  unsigned int mx, my;
+  costmap_->worldToMap(x, y, mx, my);
+
+  unsigned char cost = costmap_->getCost(mx, my);
+  return static_cast<double>(cost);
+}
+
 void PurePursuitController::applyConstraints(
   double & linear_vel, double & angular_vel,
   const double & dist_error, const double & lookahead_dist,
-  const double & curvature, const geometry_msgs::msg::Twist & curr_speed)
+  const double & curvature, const geometry_msgs::msg::Twist & curr_speed,
+  const double & pose_cost)
 {
+  // limit the linear velocity by curvature
+  const double radius = fabs(1.0 / curvature);
+  const double & min_rad = regulated_linear_scaling_min_radius_;
+  if (use_regulated_linear_velocity_scaling_ && radius < min_rad) {
+    std::cout << radius;
+    linear_vel *= 1.0 - (fabs(radius - min_rad) / min_rad);
+    if (linear_vel < regulated_linear_scaling_min_speed_) {
+      linear_vel = regulated_linear_scaling_min_speed_;
+    }
+  }
+
+  // limit the linear velocity by proximity to obstacles
+  if (use_regulated_linear_velocity_scaling_ && pose_cost != static_cast<double>(NO_INFORMATION)) {
+    // Note(stevemacenski): We can use the cost at a pose as a derived value proportional to
+    // distance to obstacle since we lack a distance map. [0-128] is the freespace costed
+    // range, above 128 is possibly inscribed, so it should max out at 128 to be a minimum speed
+    // in when in questionable states. This creates a linear mapping of
+    // cost [0, 128] to speed [min regulated speed, linear vel]
+    double max_non_collision = 128.0
+    if (pose_cost > max_non_collision) {
+      linear_vel = regulated_linear_scaling_min_speed_;
+    } else {
+      const double slope = (regulated_linear_scaling_min_speed_ - linear_vel) / max_non_collision;
+      linear_vel = slope * pose_cost + linear_vel;
+    }
+  }
+
   // if the actual lookahead distance is shorter than requested, that means we're at the
   // end of the path. We'll scale linear velocity by error to slow to a smooth stop
   if (use_approach_vel_scaling_ && dist_error > 2.0 * costmap_->getResolution()) {
@@ -387,30 +424,7 @@ void PurePursuitController::applyConstraints(
     linear_vel = linear_vel * velocity_scaling;
   }
 
-  // limit the linear velocity by curvature
-  const double radius = fabs(1.0 / curvature);
-  const double & min_rad = restricted_linear_scaling_min_radius_;
-  if (use_linear_velocity_scaling_ && radius < min_rad) {
-    std::cout << radius;
-    linear_vel *= 1.0 - (fabs(radius - min_rad) / min_rad);
-    if (linear_vel < restricted_linear_scaling_min_speed_) {
-      linear_vel = restricted_linear_scaling_min_speed_;
-    }
-  }
-
-  // // limit the linear velocity by proximity to obstacles
-  // if (use_linear_velocity_scaling_ && cost != NO_INFORMATION) {
-  //   // We can use the cost at a pose as a derived value proportional to distance to obstacle
-  //   // since we lack a distance map. [0-128] is the freespace costed range, above 128 is possibly
-  //   // inscribed, so it should max out at 128 to be a minimum speed in when in questionable states
-  //   if (cost > static_cast<char>(128)) {
-  //     linear_vel = restricted_linear_scaling_min_speed_;
-  //   } else {
-  //     linear_vel *= fabs(static_cast<double>(cost) - 128.0) / 128.0;
-  //   }
-  // }
-
-  // make sure linear velocities are kinematically feasible, v = v0 + a * dt
+  // Limit linear velocities to be kinematically feasible, v = v0 + a * dt
   double & dt = control_duration_;
   const double max_feasible_linear_speed = curr_speed.linear.x + max_linear_accel_ * dt;
   const double min_feasible_linear_speed = curr_speed.linear.x - max_linear_decel_ * dt;
@@ -425,7 +439,7 @@ void PurePursuitController::applyConstraints(
   // const double min_feasible_angular_speed = curr_speed.angular.z - angular_accel_ * dt;
   // angular_vel = std::clamp(angular_vel, min_feasible_angular_speed, max_feasible_angular_speed);
 
-  // make sure in range of generally valid velocities
+  // Limit range to generally valid velocities
   linear_vel = std::clamp(linear_vel, 0.0, desired_linear_vel_);
   angular_vel = std::clamp(angular_vel, -max_angular_vel_, max_angular_vel_);
 }
