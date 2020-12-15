@@ -114,12 +114,13 @@ protected:
   double max_linear_decel_;
   bool use_velocity_scaled_lookahead_dist_;
   tf2::Duration transform_tolerance_;
-  bool approach_vel_scaling_;
+  bool use_approach_vel_scaling_;
   double min_approach_vel_scaling_;
   double control_duration_;
   double max_allowed_time_to_collision_;
-  bool linear_velocity_scaling_;
-  double linear_scaling_min_radius_;
+  bool use_linear_velocity_scaling_;
+  double restricted_linear_scaling_min_radius_;
+  double restricted_linear_scaling_min_speed_;
 
   nav_msgs::msg::Path global_plan_;
   std::shared_ptr<rclcpp_lifecycle::LifecyclePublisher<nav_msgs::msg::Path>> global_pub_;
