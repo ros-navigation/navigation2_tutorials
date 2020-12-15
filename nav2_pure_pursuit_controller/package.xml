@@ -6,7 +6,7 @@
   <description>Pure pursuit controller</description>
   <maintainer email="stevenmacenski@gmail.com">Steve Macenski</maintainer>
   <maintainer email="shrijitsingh99@gmail.com">Shrijit Singh</maintainer>
-  <license>BSD-3-Clause</license>
+  <license>Apache-2.0</license>
 
   <buildtool_depend>ament_cmake</buildtool_depend>
 

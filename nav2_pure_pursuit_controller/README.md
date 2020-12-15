@@ -2,7 +2,7 @@
 
 Tutorial code example is referenced in https://navigation.ros.org/plugin_tutorials/docs/writing_new_nav2controller_plugin.html
 
-This controller implements a variant on the pure pursuit algorithm to track a path. This variant we call the Regulated Pure Pursuit Algorithm, due to its additional regulation terms on collision and linear speed.
+This controller implements a variant on the pure pursuit algorithm to track a path. This variant we call the Regulated Adaptive Pure Pursuit Algorithm, due to its additional regulation terms on collision and linear speed.
 
 ## How the algorithm works
 The global path is continuously pruned to the closest point to the robot (see the figure below).
