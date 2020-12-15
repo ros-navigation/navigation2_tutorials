@@ -42,3 +42,4 @@ Parameters table
 - better intro / description / gif / images
 - fill in notes to users
 - cleanup features section
+- my usual intro, "who uses it", etc

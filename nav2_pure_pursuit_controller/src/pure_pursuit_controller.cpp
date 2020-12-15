@@ -390,7 +390,6 @@ void PurePursuitController::applyConstraints(
   const double radius = fabs(1.0 / curvature);
   const double & min_rad = regulated_linear_scaling_min_radius_;
   if (use_regulated_linear_velocity_scaling_ && radius < min_rad) {
-    std::cout << radius;
     linear_vel *= 1.0 - (fabs(radius - min_rad) / min_rad);
     if (linear_vel < regulated_linear_scaling_min_speed_) {
       linear_vel = regulated_linear_scaling_min_speed_;
