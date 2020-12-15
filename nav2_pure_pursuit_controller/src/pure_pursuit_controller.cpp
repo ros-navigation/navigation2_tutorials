@@ -60,9 +60,7 @@ void PurePursuitController::configure(
   std::string name, const std::shared_ptr<tf2_ros::Buffer> & tf,
   const std::shared_ptr<nav2_costmap_2d::Costmap2DROS> & costmap_ros)
 {
-  node_ = parent;
-
-  auto node = node_.lock();
+  auto node = parent.lock();
   if (!node) {
     throw std::runtime_error("Unable to lock node!");
   }
@@ -71,7 +69,6 @@ void PurePursuitController::configure(
   costmap_ = costmap_ros_->getCostmap();
   tf_ = tf;
   plugin_name_ = name;
-  clock_ = node->get_clock();
   logger_ = node->get_logger();
 
   double transform_tolerance = 0.1;
@@ -107,9 +104,17 @@ void PurePursuitController::configure(
   declare_parameter_if_not_declared(
     node, plugin_name_ + ".use_regulated_linear_velocity_scaling", rclcpp::ParameterValue(true));
   declare_parameter_if_not_declared(
+    node, plugin_name_ + ".use_cost_regulated_linear_velocity_scaling", rclcpp::ParameterValue(false));
+  declare_parameter_if_not_declared(
     node, plugin_name_ + ".regulated_linear_scaling_min_radius", rclcpp::ParameterValue(0.90));
   declare_parameter_if_not_declared(
     node, plugin_name_ + ".regulated_linear_scaling_min_speed", rclcpp::ParameterValue(0.25));
+  declare_parameter_if_not_declared(
+    node, plugin_name_ + ".use_rotate_to_heading", rclcpp::ParameterValue(true));
+  declare_parameter_if_not_declared(
+    node, plugin_name_ + ".rotate_to_heading_min_angle", rclcpp::ParameterValue(0.785));
+  declare_parameter_if_not_declared(
+    node, plugin_name_ + ".max_angular_accel", rclcpp::ParameterValue(3.2));
 
   node->get_parameter(plugin_name_ + ".desired_linear_vel", desired_linear_vel_);
   node->get_parameter(plugin_name_ + ".max_linear_accel", max_linear_accel_);
@@ -126,8 +131,12 @@ void PurePursuitController::configure(
   node->get_parameter(plugin_name_ + ".use_approach_linear_velocity_scaling", use_approach_vel_scaling_);
   node->get_parameter(plugin_name_ + ".max_allowed_time_to_collision", max_allowed_time_to_collision_);
   node->get_parameter(plugin_name_ + ".use_regulated_linear_velocity_scaling", use_regulated_linear_velocity_scaling_);
+  node->get_parameter(plugin_name_ + ".use_cost_regulated_linear_velocity_scaling", use_cost_regulated_linear_velocity_scaling_);
   node->get_parameter(plugin_name_ + ".regulated_linear_scaling_min_radius", regulated_linear_scaling_min_radius_);
   node->get_parameter(plugin_name_ + ".regulated_linear_scaling_min_speed", regulated_linear_scaling_min_speed_);
+  node->get_parameter(plugin_name_ + ".use_rotate_to_heading", use_rotate_to_heading_);
+  node->get_parameter(plugin_name_ + ".rotate_to_heading_min_angle", rotate_to_heading_min_angle_);
+  node->get_parameter(plugin_name_ + ".max_angular_accel", max_angular_accel_);
   node->get_parameter("control_frequency", control_frequency);
 
   transform_tolerance_ = tf2::durationFromSec(transform_tolerance);
@@ -186,6 +195,17 @@ double PurePursuitController::getLookAheadDistance(const geometry_msgs::msg::Twi
   return lookahead_dist;
 }
 
+std::unique_ptr<geometry_msgs::msg::PointStamped> PurePursuitController::createCarrotMsg(
+  const geometry_msgs::msg::PoseStamped & carrot_pose)
+{
+  auto carrot_msg = std::make_unique<geometry_msgs::msg::PointStamped>();
+  carrot_msg->header = carrot_pose.header;
+  carrot_msg->point.x = carrot_pose.pose.position.x;
+  carrot_msg->point.y = carrot_pose.pose.position.y;
+  carrot_msg->point.z = 0.01;  // publish right over map to stand out
+  return carrot_msg;
+}
+
 geometry_msgs::msg::TwistStamped PurePursuitController::computeVelocityCommands(
   const geometry_msgs::msg::PoseStamped & pose,
   const geometry_msgs::msg::Twist & speed)
@@ -196,12 +216,7 @@ geometry_msgs::msg::TwistStamped PurePursuitController::computeVelocityCommands(
   // Find look ahead distance and point on path and publish
   const double lookahead_dist = getLookAheadDistance(speed);
   auto carrot_pose = getLookAheadMarker(lookahead_dist, transformed_plan);
-  auto carrot_msg = std::make_unique<geometry_msgs::msg::PointStamped>();
-  carrot_msg->header = carrot_pose.header;
-  carrot_msg->point.x = carrot_pose.pose.position.x;
-  carrot_msg->point.y = carrot_pose.pose.position.y;
-  carrot_msg->point.z = 0.01;  // publish right over map to stand out
-  carrot_pub_->publish(std::move(carrot_msg));
+  carrot_pub_->publish(std::move(createCarrotMsg(carrot_pose)));
 
   double linear_vel, angular_vel;
 
@@ -222,10 +237,15 @@ geometry_msgs::msg::TwistStamped PurePursuitController::computeVelocityCommands(
   angular_vel = desired_linear_vel_ * curvature;
 
   // Make sure we're in compliance with basic constraints
-  applyConstraints(
-    linear_vel, angular_vel,
-    fabs(lookahead_dist - sqrt(carrot_dist2)), lookahead_dist, curvature, speed,
-    costAtPose(pose.pose.position.x, pose.pose.position.y));
+  double angle_to_path;
+  if (shouldRotateToPath(carrot_pose, angle_to_path)) {
+    rotateToHeading(linear_vel, angular_vel, angle_to_path, speed);
+  } else {
+    applyConstraints(
+      linear_vel, angular_vel,
+      fabs(lookahead_dist - sqrt(carrot_dist2)), lookahead_dist, curvature, speed,
+      costAtPose(pose.pose.position.x, pose.pose.position.y));
+  }
 
   // Collision checking on this velocity heading
   if (isCollisionImminent(pose, carrot_pose, curvature, linear_vel, angular_vel)) {
@@ -239,6 +259,34 @@ geometry_msgs::msg::TwistStamped PurePursuitController::computeVelocityCommands(
   cmd_vel.twist.linear.x = linear_vel;
   cmd_vel.twist.angular.z = angular_vel;
   return cmd_vel;
+}
+
+bool PurePursuitController::shouldRotateToPath(
+  const geometry_msgs::msg::PoseStamped & carrot_pose, double & angle_to_path)
+{
+  // Whether we should rotate robot to rough path heading
+  angle_to_path = atan2(carrot_pose.pose.position.y, carrot_pose.pose.position.x);
+  if (use_rotate_to_heading_ && fabs(angle_to_path) > rotate_to_heading_min_angle_) {
+    return true;
+  }
+
+  return false;
+}
+
+void PurePursuitController::rotateToHeading(
+  double & linear_vel, double & angular_vel,
+  const double & angle_to_path, const geometry_msgs::msg::Twist & curr_speed)
+{
+  // Rotate in place using max angular velocity / acceleration possible
+  linear_vel = 0.0;
+  const double sign = angle_to_path > 0.0 ? 1.0 : -1.0;
+  angular_vel = sign * max_angular_vel_;
+
+  const double & dt = control_duration_;
+  const double min_feasible_angular_speed = curr_speed.angular.z - max_angular_accel_ * dt;
+  const double max_feasible_angular_speed = curr_speed.angular.z + max_angular_accel_ * dt;
+  angular_vel = std::clamp(angular_vel, min_feasible_angular_speed, max_feasible_angular_speed);
+  std::cout << "Rotating to path heading..." << std::endl;
 }
 
 geometry_msgs::msg::PoseStamped PurePursuitController::getLookAheadMarker(
@@ -287,7 +335,7 @@ bool PurePursuitController::isCollisionImminent(
   // debug messages
   nav_msgs::msg::Path arc_pts_msg;
   arc_pts_msg.header.frame_id = costmap_ros_->getGlobalFrameID();
-  arc_pts_msg.header.stamp = clock_->now();
+  arc_pts_msg.header.stamp = robot_pose.header.stamp;
   geometry_msgs::msg::PoseStamped pose_msg;
   pose_msg.header.frame_id = arc_pts_msg.header.frame_id;
   pose_msg.header.stamp = arc_pts_msg.header.stamp;
@@ -377,7 +425,9 @@ void PurePursuitController::applyConstraints(
   }
 
   // limit the linear velocity by proximity to obstacles
-  if (use_regulated_linear_velocity_scaling_ && pose_cost != static_cast<double>(NO_INFORMATION)) {
+  if (use_cost_regulated_linear_velocity_scaling_ &&
+    pose_cost != static_cast<double>(NO_INFORMATION))
+  {
     // Note(stevemacenski): We can use the cost at a pose as a derived value proportional to
     // distance to obstacle since we lack a distance map. [0-128] is the freespace costed
     // range, above 128 is possibly inscribed, so it should max out at 128 to be a minimum speed

@@ -35,6 +35,7 @@ class PurePursuitController : public nav2_core::Controller
 {
 public:
   PurePursuitController() = default;
+
   ~PurePursuitController() override = default;
 
   void configure(
@@ -44,7 +45,9 @@ public:
 
 
   void cleanup() override;
+
   void activate() override;
+
   void deactivate() override;
 
   geometry_msgs::msg::TwistStamped computeVelocityCommands(
@@ -63,11 +66,22 @@ protected:
 
   double getLookAheadDistance(const geometry_msgs::msg::Twist &);
 
+  std::unique_ptr<geometry_msgs::msg::PointStamped> createCarrotMsg(
+    const geometry_msgs::msg::PoseStamped & carrot_pose);
+
+  bool shouldRotateToPath(
+    const geometry_msgs::msg::PoseStamped & carrot_pose, double & angle_to_path);
+
+  void rotateToHeading(double & linear_vel, double & angular_vel,
+    const double & angle_to_path, const geometry_msgs::msg::Twist & curr_speed);
+
   bool isCollisionImminent(
     const geometry_msgs::msg::PoseStamped &,
     const geometry_msgs::msg::PoseStamped &,
     const double &, const double &, const double &);
+
   bool inCollision(const double & x, const double & y);
+
   double costAtPose(const double & x, const double & y);
 
   void applyConstraints(
@@ -78,13 +92,11 @@ protected:
 
   geometry_msgs::msg::PoseStamped getLookAheadMarker(const double &, const nav_msgs::msg::Path &);
 
-  rclcpp_lifecycle::LifecycleNode::WeakPtr node_;
   std::shared_ptr<tf2_ros::Buffer> tf_;
   std::string plugin_name_;
   std::shared_ptr<nav2_costmap_2d::Costmap2DROS> costmap_ros_;
   nav2_costmap_2d::Costmap2D * costmap_;
   rclcpp::Logger logger_ {rclcpp::get_logger("PurePursuitController")};
-  rclcpp::Clock::SharedPtr clock_;
 
   double desired_linear_vel_;
   double lookahead_dist_;
@@ -101,8 +113,12 @@ protected:
   double control_duration_;
   double max_allowed_time_to_collision_;
   bool use_regulated_linear_velocity_scaling_;
+  bool use_cost_regulated_linear_velocity_scaling_;
   double regulated_linear_scaling_min_radius_;
   double regulated_linear_scaling_min_speed_;
+  bool use_rotate_to_heading_;
+  double max_angular_accel_;
+  double rotate_to_heading_min_angle_;
 
   nav_msgs::msg::Path global_plan_;
   std::shared_ptr<rclcpp_lifecycle::LifecyclePublisher<nav_msgs::msg::Path>> global_pub_;
