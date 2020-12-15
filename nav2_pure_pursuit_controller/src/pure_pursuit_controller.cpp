@@ -90,8 +90,8 @@ void PurePursuitController::configure(
   costmap_ = costmap_ros_->getCostmap();
   tf_ = tf;
   plugin_name_ = name;
-  logger_ = node->get_logger();
   clock_ = node->get_clock();
+  logger_ = node->get_logger();
 
   declare_parameter_if_not_declared(
     node, plugin_name_ + ".desired_linear_vel", rclcpp::ParameterValue(0.5));
@@ -120,7 +120,10 @@ void PurePursuitController::configure(
     node, plugin_name_ + ".approach_vel_scaling", rclcpp::ParameterValue(true));
   declare_parameter_if_not_declared(
     node, plugin_name_ + ".max_allowed_time_to_collision", rclcpp::ParameterValue(1.0));
-
+  declare_parameter_if_not_declared(
+    node, plugin_name_ + ".linear_velocity_scaling", rclcpp::ParameterValue(true));
+  declare_parameter_if_not_declared(
+    node, plugin_name_ + ".linear_scaling_min_radius", rclcpp::ParameterValue(0.90));
 
   node->get_parameter(plugin_name_ + ".desired_linear_vel", desired_linear_vel_);
   node->get_parameter(plugin_name_ + ".max_linear_accel", max_linear_accel_);
@@ -137,6 +140,8 @@ void PurePursuitController::configure(
   node->get_parameter(plugin_name_ + ".min_approach_vel_scaling", min_approach_vel_scaling_);
   node->get_parameter(plugin_name_ + ".approach_vel_scaling", approach_vel_scaling_);
   node->get_parameter(plugin_name_ + ".max_allowed_time_to_collision", max_allowed_time_to_collision_);
+  node->get_parameter(plugin_name_ + ".linear_velocity_scaling", linear_velocity_scaling_);
+  node->get_parameter(plugin_name_ + ".linear_scaling_min_radius", linear_scaling_min_radius_);
 
   double control_frequency = 20.0;
   node->get_parameter("control_frequency", control_frequency);
@@ -235,7 +240,7 @@ geometry_msgs::msg::TwistStamped PurePursuitController::computeVelocityCommands(
   // Make sure we're in compliance with basic constraints
   applyConstraints(
     linear_vel, angular_vel,
-    fabs(lookahead_dist - sqrt(carrot_dist2)), lookahead_dist, speed);
+    fabs(lookahead_dist - sqrt(carrot_dist2)), lookahead_dist, curvature, speed);
 
   // Collision checking on this velocity heading
   if (isCollisionImminent(pose, carrot_pose, curvature, linear_vel, angular_vel)) {
@@ -307,7 +312,7 @@ bool PurePursuitController::isCollisionImminent(
   const double chord_len = hypot(carrot_pose.pose.position.x, carrot_pose.pose.position.y);
 
   // Find the number of increments by finding the arc length of the chord on circle
-  const double r = 1 / curvature;
+  const double r = fabs(1.0 / curvature);
   const double alpha = 2.0 * asin(chord_len / (2 * r)); // central angle
   const double arc_len = alpha * r;
   const double delta_dist = costmap_->getResolution();
@@ -367,7 +372,7 @@ bool PurePursuitController::inCollision(const double & x, const double & y)
 void PurePursuitController::applyConstraints(
   double & linear_vel, double & angular_vel,
   const double & dist_error, const double & lookahead_dist,
-  const geometry_msgs::msg::Twist & curr_speed)
+  const double & curvature, const geometry_msgs::msg::Twist & curr_speed)
 {
   // if the actual lookahead distance is shorter than requested, that means we're at the
   // end of the path. We'll scale linear velocity by error to slow to a smooth stop
@@ -378,6 +383,22 @@ void PurePursuitController::applyConstraints(
     }
     linear_vel = linear_vel * velocity_scaling;
   }
+
+
+  // limit the linear velocity by curvature
+  const double radius = fabs(1.0 / curvature);
+  if (linear_velocity_scaling_ && radius < linear_scaling_min_radius_) {
+    std::cout << radius;
+    std::cout << " Before: " << linear_vel;
+    linear_vel *= 1.0 - (fabs(radius - linear_scaling_min_radius_) / linear_scaling_min_radius_);
+    std::cout << " After: " << linear_vel << std::endl;
+  }
+
+  // // limit the linear velocity by distance to obstacles (N meters away thresh) OR cost at cell as approximation for proximity (N cost thresh)
+  // if (linear_velocity_scaling_ && cost != NO_INFORMATION) {
+  //   // (0-253) range (non inclusive) of valid options. 128 = possibly inscribed
+  //   linear vel = 
+  // }
 
   // make sure linear velocities are kinematically feasible, v = v0 + a*t
   double & dt = control_duration_;

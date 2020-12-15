@@ -18,7 +18,14 @@ This implementation has a number of non-standard features.
 - Optional dynamic scaling of the look ahead point distance proportional to velocity. This helps you have a more stable robot path tracking over a broader range of velocity inputs if your robot has a large band of operating velocities. There are parameters for the minimum and maximum distances as well.
 - Optional slow on approach to the goal. The default algorithm tracks a path at a given linear velocity. This feature allows you to slow the robot on its approach to a goal and also set the minimum percentage (from 0.0-1.0) on approach so it doesn't approach 0% before attaining the goal.
 - Kinematic speed limiting on linear velocities to make sure the resulting trajectories are kinematically feasible on getting up to speed and slowing to a stop.
+- Optionally scaling linear velocity by its proximity to obstacles and curvature. This is helpful to slow the robot when moving close to things in narrow spaces and scaling down the linear velocity by curvature helps to stabilize the controller over a larger range of lookahead point distances. The major benefit of scaling by curvature is to create intuitive behavior of slowing the robot when making sharp turns and also de-sensitising the look ahead distances which would otherwise be more sensitive to overshoot in some such cases (e.g. average users require little tuning to get reasonable behavior). A secondary benefit of scaling by curvature is to all the robot to natively rotate to rough path heading when using holonomic planners without explicit 'rotate to heading' commands.
 
 This package will also publish a few useful topics:
 - lookahead point: the position at which the lookahead point is located the robot is attempting to follow
 - lookahead arc: the arc produced by the pure pursuit algorithm for debug visualization while tuning. It is also the points on the path that the collision detector is running. In a collision state, the last published arc will be the points leading up to, and including, the first point in collision.
+
+---
+
+Adaptive regulated/restricted pure pursuit. Adqptive for changing pt and regulated on speed to avoid collisions with nearby things/collision checking/high curvature where devation might be more prone
+
+Any more principled approaches I can take? Think about the tools in my toolbox (KF, PF, geometry, NLLS, unit analysis, kinematics, cost function term formulations)

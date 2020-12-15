@@ -92,7 +92,7 @@ protected:
   void applyConstraints(
     double & linear_vel, double & angular_vel,
     const double & dist_error, const double & lookahead_dist,
-    const geometry_msgs::msg::Twist & speed);
+    const double & curvature, const geometry_msgs::msg::Twist & speed);
 
   geometry_msgs::msg::PoseStamped getLookAheadMarker(const double &, const nav_msgs::msg::Path &);
 
@@ -118,6 +118,8 @@ protected:
   double min_approach_vel_scaling_;
   double control_duration_;
   double max_allowed_time_to_collision_;
+  bool linear_velocity_scaling_;
+  double linear_scaling_min_radius_;
 
   nav_msgs::msg::Path global_plan_;
   std::shared_ptr<rclcpp_lifecycle::LifecyclePublisher<nav_msgs::msg::Path>> global_pub_;
