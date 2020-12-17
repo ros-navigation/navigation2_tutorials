@@ -85,7 +85,7 @@ protected:
   double costAtPose(const double & x, const double & y);
 
   void applyConstraints(
-    double & linear_vel, double & angular_vel,
+    double & linear_vel,
     const double & dist_error, const double & lookahead_dist,
     const double & curvature, const geometry_msgs::msg::Twist & speed,
     const double & pose_cost);
@@ -100,7 +100,7 @@ protected:
 
   double desired_linear_vel_;
   double lookahead_dist_;
-  double max_angular_vel_;
+  double rotate_to_heading_angular_vel_;
   double max_lookahead_dist_;
   double min_lookahead_dist_;
   double lookahead_time_;

@@ -89,7 +89,7 @@ void PurePursuitController::configure(
   declare_parameter_if_not_declared(
     node, plugin_name_ + ".lookahead_time", rclcpp::ParameterValue(1.5));
   declare_parameter_if_not_declared(
-    node, plugin_name_ + ".max_angular_vel", rclcpp::ParameterValue(1.8));
+    node, plugin_name_ + ".rotate_to_heading_angular_vel", rclcpp::ParameterValue(1.8));
   declare_parameter_if_not_declared(
     node, plugin_name_ + ".transform_tolerance", rclcpp::ParameterValue(0.1));
   declare_parameter_if_not_declared(
@@ -123,7 +123,7 @@ void PurePursuitController::configure(
   node->get_parameter(plugin_name_ + ".min_lookahead_dist", min_lookahead_dist_);
   node->get_parameter(plugin_name_ + ".max_lookahead_dist", max_lookahead_dist_);
   node->get_parameter(plugin_name_ + ".lookahead_time", lookahead_time_);
-  node->get_parameter(plugin_name_ + ".max_angular_vel", max_angular_vel_);
+  node->get_parameter(plugin_name_ + ".rotate_to_heading_angular_vel", rotate_to_heading_angular_vel_);
   node->get_parameter(plugin_name_ + ".transform_tolerance", transform_tolerance);
   node->get_parameter(plugin_name_ + ".use_velocity_scaled_lookahead_dist",
     use_velocity_scaled_lookahead_dist_);
@@ -242,8 +242,8 @@ geometry_msgs::msg::TwistStamped PurePursuitController::computeVelocityCommands(
     rotateToHeading(linear_vel, angular_vel, angle_to_path, speed);
   } else {
     applyConstraints(
-      linear_vel, angular_vel,
-      fabs(lookahead_dist - sqrt(carrot_dist2)), lookahead_dist, curvature, speed,
+      linear_vel, fabs(lookahead_dist - sqrt(carrot_dist2)),
+      lookahead_dist, curvature, speed,
       costAtPose(pose.pose.position.x, pose.pose.position.y));
   }
 
@@ -280,7 +280,7 @@ void PurePursuitController::rotateToHeading(
   // Rotate in place using max angular velocity / acceleration possible
   linear_vel = 0.0;
   const double sign = angle_to_path > 0.0 ? 1.0 : -1.0;
-  angular_vel = sign * max_angular_vel_;
+  angular_vel = sign * rotate_to_heading_angular_vel_;
 
   const double & dt = control_duration_;
   const double min_feasible_angular_speed = curr_speed.angular.z - max_angular_accel_ * dt;
@@ -409,7 +409,7 @@ double PurePursuitController::costAtPose(const double & x, const double & y)
 }
 
 void PurePursuitController::applyConstraints(
-  double & linear_vel, double & angular_vel,
+  double & linear_vel,
   const double & dist_error, const double & lookahead_dist,
   const double & curvature, const geometry_msgs::msg::Twist & curr_speed,
   const double & pose_cost)
@@ -469,7 +469,6 @@ void PurePursuitController::applyConstraints(
 
   // Limit range to generally valid velocities
   linear_vel = std::clamp(linear_vel, 0.0, desired_linear_vel_);
-  angular_vel = std::clamp(angular_vel, -max_angular_vel_, max_angular_vel_);
 }
 
 void PurePursuitController::setPlan(const nav_msgs::msg::Path & path)
