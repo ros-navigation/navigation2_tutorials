@@ -286,7 +286,6 @@ void PurePursuitController::rotateToHeading(
   const double min_feasible_angular_speed = curr_speed.angular.z - max_angular_accel_ * dt;
   const double max_feasible_angular_speed = curr_speed.angular.z + max_angular_accel_ * dt;
   angular_vel = std::clamp(angular_vel, min_feasible_angular_speed, max_feasible_angular_speed);
-  std::cout << "Rotating to path heading..." << std::endl;
 }
 
 geometry_msgs::msg::PoseStamped PurePursuitController::getLookAheadMarker(
