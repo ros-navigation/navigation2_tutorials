@@ -96,7 +96,7 @@ void PurePursuitController::configure(
     node, plugin_name_ + ".use_velocity_scaled_lookahead_dist",
     rclcpp::ParameterValue(false));
   declare_parameter_if_not_declared(
-    node, plugin_name_ + ".min_approach_vel_scaling", rclcpp::ParameterValue(0.10));
+    node, plugin_name_ + ".min_approach_linear_velocity", rclcpp::ParameterValue(0.05));
   declare_parameter_if_not_declared(
     node, plugin_name_ + ".use_approach_linear_velocity_scaling", rclcpp::ParameterValue(true));
   declare_parameter_if_not_declared(
@@ -127,7 +127,7 @@ void PurePursuitController::configure(
   node->get_parameter(plugin_name_ + ".transform_tolerance", transform_tolerance);
   node->get_parameter(plugin_name_ + ".use_velocity_scaled_lookahead_dist",
     use_velocity_scaled_lookahead_dist_);
-  node->get_parameter(plugin_name_ + ".min_approach_vel_scaling", min_approach_vel_scaling_); // TODO use an absolute velocity rather than a %?
+  node->get_parameter(plugin_name_ + ".min_approach_linear_velocity", min_approach_linear_velocity_);
   node->get_parameter(plugin_name_ + ".use_approach_linear_velocity_scaling", use_approach_vel_scaling_);
   node->get_parameter(plugin_name_ + ".max_allowed_time_to_collision", max_allowed_time_to_collision_);
   node->get_parameter(plugin_name_ + ".use_regulated_linear_velocity_scaling", use_regulated_linear_velocity_scaling_);
@@ -446,10 +446,12 @@ void PurePursuitController::applyConstraints(
   // end of the path. We'll scale linear velocity by error to slow to a smooth stop
   if (use_approach_vel_scaling_ && dist_error > 2.0 * costmap_->getResolution()) {
     double velocity_scaling = 1.0 - (dist_error / lookahead_dist);
-    if (velocity_scaling < min_approach_vel_scaling_) {
-      velocity_scaling = min_approach_vel_scaling_;
+    double unbounded_vel = linear_vel * velocity_scaling;
+    if (unbounded_vel < min_approach_linear_velocity_) {
+      linear_vel = min_approach_linear_velocity_;
+    } else {
+      linear_vel = linear_vel * velocity_scaling;
     }
-    linear_vel = linear_vel * velocity_scaling;
   }
 
   // Limit linear velocities to be kinematically feasible, v = v0 + a * dt
