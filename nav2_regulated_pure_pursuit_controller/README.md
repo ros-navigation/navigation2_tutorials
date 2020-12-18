@@ -10,7 +10,7 @@ It builds on top of the ordinary pure pursuit algorithm in a number of ways. It 
 
 This controller has been measured to run at well over 1 kHz on a modern intel processor.
 
-TODO gif working
+![test](https://user-images.githubusercontent.com/14944147/102563918-3cd49d80-408f-11eb-8e03-b472815a05d8.gif)
 
 ## Pure Pursuit Basics
 
@@ -41,8 +41,6 @@ The cost functions penalize the robot's speed based on its proximity to obstacle
 An unintended tertiary benefit of scaling the linear velocities by curvature is that a robot will natively rotate to rough path heading when using holonomic planners that don't start aligned with the robot pose orientation. As the curvature will be very high, the linear velocity drops and the angular velocity takes over to rotate to heading. While not perfect, it does dramatically reduce the need to rotate to a close path heading before following and opens up a broader range of planning techniques. Pure Pursuit controllers otherwise would be completely unable to recover from this in even modestly confined spaces. 
 
 Mixing the proximity and curvature regulated linear velocities with the time-scaled collision checker, we see a near-perfect combination allowing the regulated pure pursuit algorithm to handle high starting deviations from the path and navigate collision-free in tight spaces without overshoot. 
-
-TODO gif of it getting out of a constrained / slowing on high curavture features
 
 ## Configuration
 
