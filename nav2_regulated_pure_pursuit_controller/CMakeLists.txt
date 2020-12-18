@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.5)
-project(nav2_pure_pursuit_controller)
+project(nav2_regulated_pure_pursuit_controller)
 
 find_package(ament_cmake REQUIRED)
 find_package(nav2_common REQUIRED)
@@ -30,17 +30,17 @@ set(dependencies
   tf2
 )
 
-add_library(nav2_pure_pursuit_controller SHARED
-        src/pure_pursuit_controller.cpp)
+add_library(nav2_regulated_pure_pursuit_controller SHARED
+        src/regulated_pure_pursuit_controller.cpp)
 
 # prevent pluginlib from using boost
-target_compile_definitions(nav2_pure_pursuit_controller PUBLIC "PLUGINLIB__DISABLE_BOOST_FUNCTIONS")
+target_compile_definitions(nav2_regulated_pure_pursuit_controller PUBLIC "PLUGINLIB__DISABLE_BOOST_FUNCTIONS")
 
-ament_target_dependencies(nav2_pure_pursuit_controller
+ament_target_dependencies(nav2_regulated_pure_pursuit_controller
   ${dependencies}
 )
 
-install(TARGETS nav2_pure_pursuit_controller
+install(TARGETS nav2_regulated_pure_pursuit_controller
   ARCHIVE DESTINATION lib
   LIBRARY DESTINATION lib
   RUNTIME DESTINATION bin
@@ -58,10 +58,10 @@ if(BUILD_TESTING)
 endif()
 
 ament_export_include_directories(include)
-ament_export_libraries(nav2_pure_pursuit_controller)
+ament_export_libraries(nav2_regulated_pure_pursuit_controller)
 ament_export_dependencies(${dependencies})
 
-pluginlib_export_plugin_description_file(nav2_core nav2_pure_pursuit_controller.xml)
+pluginlib_export_plugin_description_file(nav2_core nav2_regulated_pure_pursuit_controller.xml)
 
 ament_package()
 

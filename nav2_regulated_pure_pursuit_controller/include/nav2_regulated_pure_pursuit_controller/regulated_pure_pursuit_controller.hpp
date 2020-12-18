@@ -13,8 +13,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef NAV2_PURE_PURSUIT_CONTROLLER__PURE_PURSUIT_CONTROLLER_HPP_
-#define NAV2_PURE_PURSUIT_CONTROLLER__PURE_PURSUIT_CONTROLLER_HPP_
+#ifndef NAV2_REGULATED_PURE_PURSUIT_CONTROLLER__PURE_PURSUIT_CONTROLLER_HPP_
+#define NAV2_REGULATED_PURE_PURSUIT_CONTROLLER__PURE_PURSUIT_CONTROLLER_HPP_
 
 #include <string>
 #include <vector>
@@ -28,15 +28,15 @@
 #include "nav2_util/odometry_utils.hpp"
 #include "geometry_msgs/msg/pose2_d.hpp"
 
-namespace nav2_pure_pursuit_controller
+namespace nav2_regulated_pure_pursuit_controller
 {
 
-class PurePursuitController : public nav2_core::Controller
+class RegulatedPurePursuitController : public nav2_core::Controller
 {
 public:
-  PurePursuitController() = default;
+  RegulatedPurePursuitController() = default;
 
-  ~PurePursuitController() override = default;
+  ~RegulatedPurePursuitController() override = default;
 
   void configure(
     const rclcpp_lifecycle::LifecycleNode::WeakPtr & parent,
@@ -96,7 +96,7 @@ protected:
   std::string plugin_name_;
   std::shared_ptr<nav2_costmap_2d::Costmap2DROS> costmap_ros_;
   nav2_costmap_2d::Costmap2D * costmap_;
-  rclcpp::Logger logger_ {rclcpp::get_logger("PurePursuitController")};
+  rclcpp::Logger logger_ {rclcpp::get_logger("RegulatedPurePursuitController")};
 
   double desired_linear_vel_;
   double lookahead_dist_;
@@ -126,6 +126,6 @@ protected:
   std::shared_ptr<rclcpp_lifecycle::LifecyclePublisher<nav_msgs::msg::Path>> carrot_arc_pub_;
 };
 
-}  // namespace nav2_pure_pursuit_controller
+}  // namespace nav2_regulated_pure_pursuit_controller
 
-#endif  // NAV2_PURE_PURSUIT_CONTROLLER__PURE_PURSUIT_CONTROLLER_HPP_
+#endif  // NAV2_REGULATED_PURE_PURSUIT_CONTROLLER__PURE_PURSUIT_CONTROLLER_HPP_

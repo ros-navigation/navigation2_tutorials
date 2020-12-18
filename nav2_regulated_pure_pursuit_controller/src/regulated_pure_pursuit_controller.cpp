@@ -18,7 +18,7 @@
 #include <memory>
 #include <algorithm>
 
-#include "nav2_pure_pursuit_controller/pure_pursuit_controller.hpp"
+#include "nav2_regulated_pure_pursuit_controller/regulated_pure_pursuit_controller.hpp"
 #include "nav2_core/exceptions.hpp"
 #include "nav2_util/node_utils.hpp"
 #include "nav2_util/geometry_utils.hpp"
@@ -31,7 +31,7 @@ using nav2_util::declare_parameter_if_not_declared;
 using nav2_util::geometry_utils::euclidean_distance;
 using namespace nav2_costmap_2d;  // NOLINT
 
-namespace nav2_pure_pursuit_controller
+namespace nav2_regulated_pure_pursuit_controller
 {
 
 /**
@@ -55,7 +55,7 @@ Iter min_by(Iter begin, Iter end, Getter getCompareVal)
   return lowest_it;
 }
 
-void PurePursuitController::configure(
+void RegulatedPurePursuitController::configure(
   const rclcpp_lifecycle::LifecycleNode::WeakPtr & parent,
   std::string name, const std::shared_ptr<tf2_ros::Buffer> & tf,
   const std::shared_ptr<nav2_costmap_2d::Costmap2DROS> & costmap_ros)
@@ -147,40 +147,43 @@ void PurePursuitController::configure(
   carrot_arc_pub_ = node->create_publisher<nav_msgs::msg::Path>("lookahead_collision_arc", 1);
 }
 
-void PurePursuitController::cleanup()
+void RegulatedPurePursuitController::cleanup()
 {
   RCLCPP_INFO(
     logger_,
-    "Cleaning up controller: %s of type pure_pursuit_controller::PurePursuitController",
+    "Cleaning up controller: %s of type"
+    " regulated_pure_pursuit_controller::RegulatedPurePursuitController",
     plugin_name_.c_str());
   global_pub_.reset();
   carrot_pub_.reset();
   carrot_arc_pub_.reset();
 }
 
-void PurePursuitController::activate()
+void RegulatedPurePursuitController::activate()
 {
   RCLCPP_INFO(
     logger_,
-    "Activating controller: %s of type pure_pursuit_controller::PurePursuitController\"  %s",
+    "Activating controller: %s of type "
+    "regulated_pure_pursuit_controller::RegulatedPurePursuitController\"  %s",
     plugin_name_.c_str());
   global_pub_->on_activate();
   carrot_pub_->on_activate();
   carrot_arc_pub_->on_activate();
 }
 
-void PurePursuitController::deactivate()
+void RegulatedPurePursuitController::deactivate()
 {
   RCLCPP_INFO(
     logger_,
-    "Deactivating controller: %s of type pure_pursuit_controller::PurePursuitController\"  %s",
+    "Deactivating controller: %s of type "
+    "regulated_pure_pursuit_controller::RegulatedPurePursuitController\"  %s",
     plugin_name_.c_str());
   global_pub_->on_deactivate();
   carrot_pub_->on_deactivate();
   carrot_arc_pub_->on_deactivate();
 }
 
-double PurePursuitController::getLookAheadDistance(const geometry_msgs::msg::Twist & speed)
+double RegulatedPurePursuitController::getLookAheadDistance(const geometry_msgs::msg::Twist & speed)
 {
   // If using velocity-scaled look ahead distances, find and clamp the dist
   // Else, use the static look ahead distance
@@ -195,7 +198,7 @@ double PurePursuitController::getLookAheadDistance(const geometry_msgs::msg::Twi
   return lookahead_dist;
 }
 
-std::unique_ptr<geometry_msgs::msg::PointStamped> PurePursuitController::createCarrotMsg(
+std::unique_ptr<geometry_msgs::msg::PointStamped> RegulatedPurePursuitController::createCarrotMsg(
   const geometry_msgs::msg::PoseStamped & carrot_pose)
 {
   auto carrot_msg = std::make_unique<geometry_msgs::msg::PointStamped>();
@@ -206,7 +209,7 @@ std::unique_ptr<geometry_msgs::msg::PointStamped> PurePursuitController::createC
   return carrot_msg;
 }
 
-geometry_msgs::msg::TwistStamped PurePursuitController::computeVelocityCommands(
+geometry_msgs::msg::TwistStamped RegulatedPurePursuitController::computeVelocityCommands(
   const geometry_msgs::msg::PoseStamped & pose,
   const geometry_msgs::msg::Twist & speed)
 {
@@ -250,7 +253,7 @@ geometry_msgs::msg::TwistStamped PurePursuitController::computeVelocityCommands(
   // Collision checking on this velocity heading
   if (isCollisionImminent(pose, carrot_pose, curvature, linear_vel, angular_vel)) {
     RCLCPP_ERROR(logger_, "Collision imminent!");
-    throw std::runtime_error("PurePursuitController detected collision ahead!");
+    throw std::runtime_error("RegulatedPurePursuitController detected collision ahead!");
   }
 
   // populate and return message
@@ -261,7 +264,7 @@ geometry_msgs::msg::TwistStamped PurePursuitController::computeVelocityCommands(
   return cmd_vel;
 }
 
-bool PurePursuitController::shouldRotateToPath(
+bool RegulatedPurePursuitController::shouldRotateToPath(
   const geometry_msgs::msg::PoseStamped & carrot_pose, double & angle_to_path)
 {
   // Whether we should rotate robot to rough path heading
@@ -273,7 +276,7 @@ bool PurePursuitController::shouldRotateToPath(
   return false;
 }
 
-void PurePursuitController::rotateToHeading(
+void RegulatedPurePursuitController::rotateToHeading(
   double & linear_vel, double & angular_vel,
   const double & angle_to_path, const geometry_msgs::msg::Twist & curr_speed)
 {
@@ -288,7 +291,7 @@ void PurePursuitController::rotateToHeading(
   angular_vel = std::clamp(angular_vel, min_feasible_angular_speed, max_feasible_angular_speed);
 }
 
-geometry_msgs::msg::PoseStamped PurePursuitController::getLookAheadMarker(
+geometry_msgs::msg::PoseStamped RegulatedPurePursuitController::getLookAheadMarker(
   const double & lookahead_dist,
   const nav_msgs::msg::Path & transformed_plan)
 {
@@ -306,7 +309,7 @@ geometry_msgs::msg::PoseStamped PurePursuitController::getLookAheadMarker(
   return *goal_pose_it;
 }
 
-bool PurePursuitController::isCollisionImminent(
+bool RegulatedPurePursuitController::isCollisionImminent(
   const geometry_msgs::msg::PoseStamped & robot_pose,
   const geometry_msgs::msg::PoseStamped & carrot_pose,
   const double & curvature, const double & linear_vel,
@@ -384,7 +387,7 @@ bool PurePursuitController::isCollisionImminent(
   return false;
 }
 
-bool PurePursuitController::inCollision(const double & x, const double & y)
+bool RegulatedPurePursuitController::inCollision(const double & x, const double & y)
 {
   unsigned int mx, my;
   costmap_->worldToMap(x, y, mx, my);
@@ -398,7 +401,7 @@ bool PurePursuitController::inCollision(const double & x, const double & y)
   }
 }
 
-double PurePursuitController::costAtPose(const double & x, const double & y)
+double RegulatedPurePursuitController::costAtPose(const double & x, const double & y)
 {
   unsigned int mx, my;
   costmap_->worldToMap(x, y, mx, my);
@@ -407,7 +410,7 @@ double PurePursuitController::costAtPose(const double & x, const double & y)
   return static_cast<double>(cost);
 }
 
-void PurePursuitController::applyConstraints(
+void RegulatedPurePursuitController::applyConstraints(
   double & linear_vel,
   const double & dist_error, const double & lookahead_dist,
   const double & curvature, const geometry_msgs::msg::Twist & curr_speed,
@@ -472,13 +475,12 @@ void PurePursuitController::applyConstraints(
   linear_vel = std::clamp(linear_vel, 0.0, desired_linear_vel_);
 }
 
-void PurePursuitController::setPlan(const nav_msgs::msg::Path & path)
+void RegulatedPurePursuitController::setPlan(const nav_msgs::msg::Path & path)
 {
   global_plan_ = path;
 }
 
-nav_msgs::msg::Path
-PurePursuitController::transformGlobalPlan(
+nav_msgs::msg::Path RegulatedPurePursuitController::transformGlobalPlan(
   const geometry_msgs::msg::PoseStamped & pose)
 {
   if (global_plan_.poses.empty()) {
@@ -543,7 +545,7 @@ PurePursuitController::transformGlobalPlan(
   return transformed_plan;
 }
 
-bool PurePursuitController::transformPose(
+bool RegulatedPurePursuitController::transformPose(
   const std::string frame,
   const geometry_msgs::msg::PoseStamped & in_pose,
   geometry_msgs::msg::PoseStamped & out_pose) const
@@ -566,4 +568,6 @@ bool PurePursuitController::transformPose(
 }  // namespace nav2_pure_pursuit_controller
 
 // Register this controller as a nav2_core plugin
-PLUGINLIB_EXPORT_CLASS(nav2_pure_pursuit_controller::PurePursuitController, nav2_core::Controller)
+PLUGINLIB_EXPORT_CLASS(
+  nav2_regulated_pure_pursuit_controller::RegulatedPurePursuitController,
+  nav2_core::Controller)
