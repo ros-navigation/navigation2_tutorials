@@ -10,7 +10,9 @@ It builds on top of the ordinary pure pursuit algorithm in a number of ways. It 
 
 This controller has been measured to run at well over 1 kHz on a modern intel processor.
 
-![test](https://user-images.githubusercontent.com/14944147/102563918-3cd49d80-408f-11eb-8e03-b472815a05d8.gif)
+<p align="center">
+  <img src="https://user-images.githubusercontent.com/14944147/102563918-3cd49d80-408f-11eb-8e03-b472815a05d8.gif">
+</p>
 
 ## Pure Pursuit Basics
 
