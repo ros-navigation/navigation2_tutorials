@@ -26,7 +26,6 @@
 #include "message_filters/sync_policies/approximate_time.h"
 #include "tf2_geometry_msgs/tf2_geometry_msgs.h"
 
-
 namespace nav2_gps_waypoint_follower_demo
 {
 
@@ -62,7 +61,6 @@ private:
 
   // to ensure safety when accessing global
   std::mutex global_mutex_;
-  int gps_msg_index_;
   bool is_first_msg_recieved_;
 
 };

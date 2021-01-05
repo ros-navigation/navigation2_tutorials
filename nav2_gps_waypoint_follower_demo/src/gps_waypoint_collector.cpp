@@ -20,7 +20,7 @@ namespace nav2_gps_waypoint_follower_demo
 {
 
 GPSWaypointCollector::GPSWaypointCollector()
-: Node("gps_waypoint_collector_rclcpp_node"), gps_msg_index_(0), is_first_msg_recieved_(false)
+: Node("gps_waypoint_collector_rclcpp_node"), is_first_msg_recieved_(false)
 {
   timer_ = this->create_wall_timer(
     std::chrono::milliseconds(1000),
@@ -46,7 +46,7 @@ GPSWaypointCollector::~GPSWaypointCollector()
 
 void GPSWaypointCollector::timerCallback()
 {
-  RCLCPP_INFO(this->get_logger(), "Entering to timer callback, this is periodicly called");
+  RCLCPP_INFO_ONCE(this->get_logger(), "Entering to timer callback, this is periodicly called");
   if (is_first_msg_recieved_) {
     std::lock_guard<std::mutex> guard(global_mutex_);
     tf2::Quaternion q(
@@ -59,8 +59,7 @@ void GPSWaypointCollector::timerCallback()
     m.getRPY(roll, pitch, yaw);
     RCLCPP_INFO(
       this->get_logger(),
-      "gps_waypoint" + std::to_string(
-        gps_msg_index_) + ": %.8f, %.8f, %.8f, %.8f", reusable_navsat_msg_.latitude,
+      "curr_gps_waypoint: [%.8f, %.8f, %.8f, %.8f]", reusable_navsat_msg_.latitude,
       reusable_navsat_msg_.longitude, reusable_navsat_msg_.altitude, yaw);
   }
 }
