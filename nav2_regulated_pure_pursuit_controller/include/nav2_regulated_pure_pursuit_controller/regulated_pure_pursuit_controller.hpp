@@ -90,7 +90,7 @@ protected:
     const double & curvature, const geometry_msgs::msg::Twist & speed,
     const double & pose_cost);
 
-  geometry_msgs::msg::PoseStamped getLookAheadMarker(const double &, const nav_msgs::msg::Path &);
+  geometry_msgs::msg::PoseStamped getLookAheadPoint(const double &, const nav_msgs::msg::Path &);
 
   std::shared_ptr<tf2_ros::Buffer> tf_;
   std::string plugin_name_;

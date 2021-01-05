@@ -16,7 +16,6 @@
 #include <algorithm>
 #include <string>
 #include <memory>
-#include <algorithm>
 
 #include "nav2_regulated_pure_pursuit_controller/regulated_pure_pursuit_controller.hpp"
 #include "nav2_core/exceptions.hpp"
@@ -218,7 +217,7 @@ geometry_msgs::msg::TwistStamped RegulatedPurePursuitController::computeVelocity
 
   // Find look ahead distance and point on path and publish
   const double lookahead_dist = getLookAheadDistance(speed);
-  auto carrot_pose = getLookAheadMarker(lookahead_dist, transformed_plan);
+  auto carrot_pose = getLookAheadPoint(lookahead_dist, transformed_plan);
   carrot_pub_->publish(std::move(createCarrotMsg(carrot_pose)));
 
   double linear_vel, angular_vel;
@@ -269,11 +268,7 @@ bool RegulatedPurePursuitController::shouldRotateToPath(
 {
   // Whether we should rotate robot to rough path heading
   angle_to_path = atan2(carrot_pose.pose.position.y, carrot_pose.pose.position.x);
-  if (use_rotate_to_heading_ && fabs(angle_to_path) > rotate_to_heading_min_angle_) {
-    return true;
-  }
-
-  return false;
+  return use_rotate_to_heading_ && fabs(angle_to_path) > rotate_to_heading_min_angle_;
 }
 
 void RegulatedPurePursuitController::rotateToHeading(
@@ -291,7 +286,7 @@ void RegulatedPurePursuitController::rotateToHeading(
   angular_vel = std::clamp(angular_vel, min_feasible_angular_speed, max_feasible_angular_speed);
 }
 
-geometry_msgs::msg::PoseStamped RegulatedPurePursuitController::getLookAheadMarker(
+geometry_msgs::msg::PoseStamped RegulatedPurePursuitController::getLookAheadPoint(
   const double & lookahead_dist,
   const nav_msgs::msg::Path & transformed_plan)
 {
@@ -452,7 +447,7 @@ void RegulatedPurePursuitController::applyConstraints(
     if (unbounded_vel < min_approach_linear_velocity_) {
       linear_vel = min_approach_linear_velocity_;
     } else {
-      linear_vel = linear_vel * velocity_scaling;
+      linear_vel *= velocity_scaling;
     }
   }
 
