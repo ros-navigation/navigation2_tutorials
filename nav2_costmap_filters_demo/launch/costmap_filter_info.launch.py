@@ -56,12 +56,10 @@ def generate_launch_description():
 
     declare_params_file_cmd = DeclareLaunchArgument(
             'params_file',
-            default_value=os.path.join(costmap_filters_demo_dir, 'params', 'keepout_params.yaml'),
             description='Full path to the ROS2 parameters file to use')
 
     declare_mask_yaml_file_cmd = DeclareLaunchArgument(
             'mask',
-            default_value=os.path.join(costmap_filters_demo_dir, 'maps', 'keepout_mask.yaml'),
             description='Full path to filter mask yaml file to load')
 
     # Make re-written yaml
