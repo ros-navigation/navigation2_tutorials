@@ -1,11 +1,12 @@
 <?xml version="1.0"?>
 <?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
 <package format="3">
-  <name>nav2_pure_pursuit_controller</name>
+  <name>nav2_regulated_pure_pursuit_controller</name>
   <version>1.0.0</version>
-  <description>Pure pursuit controller</description>
+  <description>Regulated Pure Pursuit Controller</description>
+  <maintainer email="stevenmacenski@gmail.com">Steve Macenski</maintainer>
   <maintainer email="shrijitsingh99@gmail.com">Shrijit Singh</maintainer>
-  <license>BSD-3-Clause</license>
+  <license>Apache-2.0</license>
 
   <buildtool_depend>ament_cmake</buildtool_depend>
 
