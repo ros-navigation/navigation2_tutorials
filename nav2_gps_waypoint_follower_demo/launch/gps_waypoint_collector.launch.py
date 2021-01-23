@@ -16,6 +16,8 @@ def generate_launch_description():
                 name='gps_waypoint_collector_node',
                 output='screen',
                 remappings=[('/gps', '/gps/fix'),
-                            ('/imu', '/imu/data')]
+                            ('/imu', '/imu/data')],
+                parameters=[{'frequency': 1},
+                            {'yaml_file_out': "/home/atas/collectedpoints.yaml"}]
             )               
 ])

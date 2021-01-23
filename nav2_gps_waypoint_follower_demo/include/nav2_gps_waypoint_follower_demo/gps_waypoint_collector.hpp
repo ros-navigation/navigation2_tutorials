@@ -20,11 +20,13 @@
 #include "rclcpp/subscription.hpp"
 #include "sensor_msgs/msg/nav_sat_fix.hpp"
 #include "sensor_msgs/msg/imu.hpp"
+#include "nav2_msgs/msg/oriented_nav_sat_fix.hpp"
 
 #include "message_filters/synchronizer.h"
 #include "message_filters/subscriber.h"
 #include "message_filters/sync_policies/approximate_time.h"
 #include "tf2_geometry_msgs/tf2_geometry_msgs.h"
+#include "yaml-cpp/emitter.h"
 
 namespace nav2_gps_waypoint_follower_demo
 {
@@ -51,7 +53,10 @@ private:
     const sensor_msgs::msg::NavSatFix::ConstSharedPtr & gps,
     const sensor_msgs::msg::Imu::ConstSharedPtr & imu);
 
+  void dumpCollectedWaypoints();
+
   rclcpp::TimerBase::SharedPtr timer_;
+  rclcpp::Publisher<nav2_msgs::msg::OrientedNavSatFix>::SharedPtr oriented_navsat_fix_publisher_;
   message_filters::Subscriber<sensor_msgs::msg::NavSatFix> navsat_fix_subscriber_;
   message_filters::Subscriber<sensor_msgs::msg::Imu> imu_subscriber_;
   std::shared_ptr<SensorDataApprxTimeSyncer> sensor_data_approx_time_syncher_;
@@ -59,10 +64,14 @@ private:
   sensor_msgs::msg::NavSatFix reusable_navsat_msg_;
   sensor_msgs::msg::Imu reusable_imu_msg_;
 
+  std::vector<std::vector<double>> collected_waypoints_vector_;
+
   // to ensure safety when accessing global
   std::mutex global_mutex_;
   bool is_first_msg_recieved_;
 
+  int frequency_;
+  std::string yaml_file_out_;
 };
 
 }  // namespace nav2_gps_waypoint_follower_demo

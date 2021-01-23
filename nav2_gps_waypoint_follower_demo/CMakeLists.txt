@@ -16,11 +16,13 @@ find_package(tf2_ros REQUIRED)
 find_package(tf2_geometry_msgs REQUIRED)
 find_package(robot_localization REQUIRED)
 find_package(rosidl_default_generators REQUIRED)
+find_package(yaml-cpp REQUIRED )
 
 nav2_package()
 
 include_directories(
-  include)
+  include
+  ${YAML_CPP_INCLUDE_DIR})
 
 set(dependencies
 rclcpp
@@ -56,7 +58,7 @@ add_executable(${gps_waypoint_collector_executable_name}
 ament_target_dependencies(${gps_waypoint_collector_executable_name}
   ${dependencies})
 
-target_link_libraries(${gps_waypoint_collector_executable_name})
+target_link_libraries(${gps_waypoint_collector_executable_name} ${YAML_CPP_LIBRARIES})
 
 install(TARGETS ${gps_client_executable_name} ${gps_waypoint_collector_executable_name}
   RUNTIME DESTINATION lib/${PROJECT_NAME})
