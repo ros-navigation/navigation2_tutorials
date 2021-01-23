@@ -27,7 +27,7 @@ GPSWayPointFollowerClient::GPSWayPointFollowerClient()
     this->get_node_graph_interface(),
     this->get_node_logging_interface(),
     this->get_node_waitables_interface(),
-    "FollowGPSWaypoints");
+    "follow_gps_waypoints");
   this->timer_ = this->create_wall_timer(
     std::chrono::milliseconds(500),
     std::bind(&GPSWayPointFollowerClient::startWaypointFollowing, this));
