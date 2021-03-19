@@ -32,12 +32,12 @@ GPSWayPointFollowerClient::GPSWayPointFollowerClient()
     std::chrono::milliseconds(500),
     std::bind(&GPSWayPointFollowerClient::startWaypointFollowing, this));
   // number of poses that robot will go throug, specified in yaml file
-  this->declare_parameter("waypoints");
+  this->declare_parameter("waypoints", std::vector<std::string>({"0"}));
   gps_poses_from_yaml_ = loadGPSWaypointsFromYAML();
   RCLCPP_INFO(
     this->get_logger(),
     "Loaded %i GPS waypoints from YAML, gonna pass them to FollowGPSWaypoints...",
-    gps_poses_from_yaml_.size());
+    static_cast<int>(gps_poses_from_yaml_.size()));
   RCLCPP_INFO(
     this->get_logger(),
     "Created an Instance of GPSWayPointFollowerClient");
@@ -108,7 +108,7 @@ GPSWayPointFollowerClient::loadGPSWaypointsFromYAML()
   std::vector<nav2_msgs::msg::OrientedNavSatFix> gps_waypoint_msg_vector;
   for (auto && curr_waypoint : waypoints_vector) {
     try {
-      this->declare_parameter(curr_waypoint);
+      this->declare_parameter(curr_waypoint, "0");
       std::vector<double> gps_waypoint_vector =
         this->get_parameter(curr_waypoint).as_double_array();
       // throw exception if incorrect format was detected from yaml file reading
