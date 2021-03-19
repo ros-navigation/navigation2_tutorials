@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.5)
-project(nav2_keepout_filter_demo)
+project(nav2_costmap_filters_demo)
 
 set(CMAKE_CXX_STANDARD 14)
 

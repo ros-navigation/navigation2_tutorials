@@ -1,9 +1,9 @@
 <?xml version="1.0"?>
 <?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
 <package format="3">
-  <name>nav2_keepout_filter_demo</name>
+  <name>nav2_costmap_filters_demo</name>
   <version>1.0.0</version>
-  <description>Keepout Zone filter demo</description>
+  <description>Costmap Filters demo</description>
   <maintainer email="alexey.merzlyakov@samsung.com">Alexey Merzlyakov</maintainer>
   <license>Apache 2.0</license>
 
