@@ -108,7 +108,7 @@ GPSWayPointFollowerClient::loadGPSWaypointsFromYAML()
   std::vector<nav2_msgs::msg::OrientedNavSatFix> gps_waypoint_msg_vector;
   for (auto && curr_waypoint : waypoints_vector) {
     try {
-      this->declare_parameter(curr_waypoint, "0");
+      this->declare_parameter(curr_waypoint, std::vector<double>({0}));
       std::vector<double> gps_waypoint_vector =
         this->get_parameter(curr_waypoint).as_double_array();
       // throw exception if incorrect format was detected from yaml file reading
