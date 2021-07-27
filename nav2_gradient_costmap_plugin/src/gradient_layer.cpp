@@ -72,6 +72,7 @@ GradientLayer::onInitialize()
   node->get_parameter(name_ + "." + "enabled", enabled_);
 
   need_recalculation_ = false;
+  current_ = true;
 }
 
 // The method is called to ask the plugin: which area of costmap it needs to update.
