@@ -57,7 +57,7 @@
 
     <xacro:box_inertia m="15" w="${base_width}" d="${base_length}" h="${base_height}"/>
   </link>
-
+  
    <!-- Robot Footprint -->
   <link name="base_footprint">
   	<xacro:box_inertia m="0" w="0" d="0" h="0"/>
@@ -83,7 +83,7 @@
       </visual>
 
       <collision>
-        <origin xyz="0 0 0" rpy="${pi/2} 0 0"/>
+        <origin xyz="0 0 0" rpy="${pi/2} 0 0"/> 
         <geometry>
           <cylinder radius="${wheel_radius}" length="${wheel_width}"/>
         </geometry>
@@ -128,7 +128,7 @@
     <child link="front_caster"/>
     <origin xyz="${caster_xoff} 0.0 ${-(base_height/2)}" rpy="0 0 0"/>
   </joint>
-     
+
   <link name="imu_link">
     <visual>
       <geometry>
@@ -219,13 +219,13 @@
       </imu>
     </sensor>
   </gazebo>
-  
+ 
   <gazebo>
     <plugin name='diff_drive' filename='libgazebo_ros_diff_drive.so'>
       <ros>
         <namespace>/demo</namespace>
       </ros>
-        
+
       <!-- wheels -->
       <left_joint>drivewhl_l_joint</left_joint>
       <right_joint>drivewhl_r_joint</right_joint>
@@ -247,7 +247,7 @@
       <robot_base_frame>base_link</robot_base_frame>
     </plugin>
   </gazebo>
-  
+
  <link name="lidar_link">
     <inertial>
       <origin xyz="0 0 0" rpy="0 0 0"/>
@@ -303,7 +303,6 @@
       </ray>
       <plugin name="scan" filename="libgazebo_ros_ray_sensor.so">
         <ros>
-          <namespace>/demo</namespace>
           <remapping>~/out:=scan</remapping>
         </ros>
         <output_type>sensor_msgs/LaserScan</output_type>
@@ -311,8 +310,7 @@
       </plugin>
     </sensor>
   </gazebo>
-
-
+  
   <link name="camera_link">
     <visual>
       <origin xyz="0 0 0" rpy="0 0 0"/>
@@ -366,9 +364,6 @@
         </clip>
       </camera>
       <plugin name="depth_camera_controller" filename="libgazebo_ros_camera.so">
-        <ros>
-          <namespace>/demo</namespace>
-        </ros>
         <baseline>0.2</baseline>
         <alwaysOn>true</alwaysOn>
         <updateRate>0.0</updateRate>
@@ -388,6 +383,4 @@
       </plugin>
     </sensor>
   </gazebo>
-
-
 </robot>
