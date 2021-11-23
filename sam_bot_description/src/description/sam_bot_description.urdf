@@ -342,7 +342,7 @@
   <link name="camera_depth_frame"/>
 
   <joint name="camera_depth_joint" type="fixed">
-    <origin xyz="0 0 0" rpy="${-pi/2} 0 ${-pi}"/>
+    <origin xyz="0 0 0" rpy="${-pi/2} 0 ${-pi/2}"/>
     <parent link="camera_link"/>
     <child link="camera_depth_frame"/>
   </joint>
@@ -367,7 +367,7 @@
         <baseline>0.2</baseline>
         <alwaysOn>true</alwaysOn>
         <updateRate>0.0</updateRate>
-        <frameName>camera_depth_frame</frameName>
+        <frame_name>camera_depth_frame</frame_name>
         <pointCloudCutoff>0.5</pointCloudCutoff>
         <pointCloudCutoffMax>3.0</pointCloudCutoffMax>
         <distortionK1>0</distortionK1>
