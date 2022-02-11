@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef NAV2_GPS_WAYPOINT_FOLLOWER_DEMO____GPS_WAYPOINT_COLLECTOR_HPP_
-#define NAV2_GPS_WAYPOINT_FOLLOWER_DEMO____GPS_WAYPOINT_COLLECTOR_HPP_
+#ifndef NAV2_GPS_WAYPOINT_FOLLOWER_DEMO____GPS_WAYPOINT_LOGGER_HPP_
+#define NAV2_GPS_WAYPOINT_FOLLOWER_DEMO____GPS_WAYPOINT_LOGGER_HPP_
 
 #include <mutex>
 #include "rclcpp/rclcpp.hpp"
@@ -53,7 +53,7 @@ private:
     const sensor_msgs::msg::NavSatFix::ConstSharedPtr & gps,
     const sensor_msgs::msg::Imu::ConstSharedPtr & imu);
 
-  void dumpCollectedWaypoints();
+  void dumpLoggedWaypoints();
 
   rclcpp::TimerBase::SharedPtr timer_;
   rclcpp::Publisher<geographic_msgs::msg::GeoPose>::SharedPtr geopose_publisher_;
@@ -64,7 +64,7 @@ private:
   sensor_msgs::msg::NavSatFix reusable_navsat_msg_;
   sensor_msgs::msg::Imu reusable_imu_msg_;
 
-  std::vector<std::vector<double>> collected_waypoints_vector_;
+  std::vector<std::vector<double>> logged_waypoints_vector_;
 
   // to ensure safety when accessing global
   std::mutex global_mutex_;
@@ -76,4 +76,4 @@ private:
 
 }  // namespace nav2_gps_waypoint_follower_demo
 
-#endif  // NAV2_GPS_WAYPOINT_FOLLOWER_DEMO____GPS_WAYPOINT_COLLECTOR_HPP_
+#endif  // NAV2_GPS_WAYPOINT_FOLLOWER_DEMO____GPS_WAYPOINT_LOGGER_HPP_

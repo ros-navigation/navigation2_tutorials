@@ -24,10 +24,10 @@ namespace nav2_gps_waypoint_follower_demo
 {
 
 GPSWaypointLogger::GPSWaypointLogger()
-: Node("gps_waypoint_collector_rclcpp_node"), is_first_msg_recieved_(false)
+: Node("gps_waypoint_logger_rclcpp_node"), is_first_msg_recieved_(false)
 {
   declare_parameter("frequency", 10);
-  declare_parameter("yaml_file_out", "/home/user_name/collected_waypoints.yaml");
+  declare_parameter("yaml_file_out", "/home/user_name/logged_waypoints.yaml");
 
   get_parameter("frequency", frequency_);
   get_parameter("yaml_file_out", yaml_file_out_);
@@ -40,7 +40,7 @@ GPSWaypointLogger::GPSWaypointLogger()
   imu_subscriber_.subscribe(this, "/imu", rmw_qos_profile_sensor_data);
 
   geopose_publisher_ = this->create_publisher<geographic_msgs::msg::GeoPose>(
-    "collected_gps_waypoints", rclcpp::SystemDefaultsQoS());
+    "logged_gps_waypoints", rclcpp::SystemDefaultsQoS());
 
   sensor_data_approx_time_syncher_.reset(
     new SensorDataApprxTimeSyncer(
@@ -55,7 +55,7 @@ GPSWaypointLogger::GPSWaypointLogger()
 
 GPSWaypointLogger::~GPSWaypointLogger()
 {
-  dumpCollectedWaypoints();
+  dumpLoggedWaypoints();
 }
 
 void GPSWaypointLogger::timerCallback()
@@ -81,7 +81,7 @@ void GPSWaypointLogger::timerCallback()
       reusable_navsat_msg_.longitude,
       reusable_navsat_msg_.altitude, yaw};
 
-    collected_waypoints_vector_.push_back(curr_waypoint_data);
+    logged_waypoints_vector_.push_back(curr_waypoint_data);
     geographic_msgs::msg::GeoPose curr_gps_waypoint;
     curr_gps_waypoint.position.latitude = reusable_navsat_msg_.latitude;
     curr_gps_waypoint.position.longitude = reusable_navsat_msg_.longitude;
@@ -101,19 +101,19 @@ void GPSWaypointLogger::sensorDataCallback(
   is_first_msg_recieved_ = true;
 }
 
-void GPSWaypointLogger::dumpCollectedWaypoints()
+void GPSWaypointLogger::dumpLoggedWaypoints()
 {
   YAML::Emitter waypoints;
   waypoints << YAML::BeginMap;
-  waypoints << YAML::Key << "waypoints" << YAML::Value << "see all points colected here";
-  for (size_t i = 0; i < collected_waypoints_vector_.size(); i++) {
+  waypoints << YAML::Key << "waypoints" << YAML::Value << "see all points logged here";
+  for (size_t i = 0; i < logged_waypoints_vector_.size(); i++) {
     std::string wp_name = "wp" + std::to_string(i);
     waypoints << YAML::Key << wp_name << YAML::Value << wp_name;
     waypoints << YAML::BeginSeq <<
-      collected_waypoints_vector_[i][0] <<
-      collected_waypoints_vector_[i][1] <<
-      collected_waypoints_vector_[i][2] <<
-      collected_waypoints_vector_[i][3] << YAML::EndSeq;
+      logged_waypoints_vector_[i][0] <<
+      logged_waypoints_vector_[i][1] <<
+      logged_waypoints_vector_[i][2] <<
+      logged_waypoints_vector_[i][3] << YAML::EndSeq;
   }
   waypoints << YAML::EndMap;
   std::ofstream fout(yaml_file_out_, std::ofstream::out);
