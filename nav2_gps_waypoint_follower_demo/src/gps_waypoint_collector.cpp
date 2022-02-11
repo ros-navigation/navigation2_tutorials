@@ -39,7 +39,7 @@ GPSWaypointCollector::GPSWaypointCollector()
   navsat_fix_subscriber_.subscribe(this, "/gps", rmw_qos_profile_sensor_data);
   imu_subscriber_.subscribe(this, "/imu", rmw_qos_profile_sensor_data);
 
-  oriented_navsat_fix_publisher_ = this->create_publisher<nav2_msgs::msg::OrientedNavSatFix>(
+  geopose_publisher_ = this->create_publisher<geographic_msgs::msg::GeoPose>(
     "collected_gps_waypoints", rclcpp::SystemDefaultsQoS());
 
   sensor_data_approx_time_syncher_.reset(
@@ -82,10 +82,12 @@ void GPSWaypointCollector::timerCallback()
       reusable_navsat_msg_.altitude, yaw};
 
     collected_waypoints_vector_.push_back(curr_waypoint_data);
-    nav2_msgs::msg::OrientedNavSatFix curr_gps_waypoint;
-    curr_gps_waypoint.position = reusable_navsat_msg_;
+    geographic_msgs::msg::GeoPose curr_gps_waypoint;
+    curr_gps_waypoint.position.latitude = reusable_navsat_msg_.latitude;
+    curr_gps_waypoint.position.longitude = reusable_navsat_msg_.longitude;
+    curr_gps_waypoint.position.altitude = reusable_navsat_msg_.altitude;
     curr_gps_waypoint.orientation = reusable_imu_msg_.orientation;
-    oriented_navsat_fix_publisher_->publish(curr_gps_waypoint);
+    geopose_publisher_->publish(curr_gps_waypoint);
   }
 }
 

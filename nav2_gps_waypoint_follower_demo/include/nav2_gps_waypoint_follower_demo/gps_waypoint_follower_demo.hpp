@@ -27,7 +27,7 @@
 #include "nav2_msgs/action/follow_gps_waypoints.hpp"
 #include "tf2/LinearMath/Quaternion.h"
 #include "tf2/convert.h"
-#include "tf2_geometry_msgs/tf2_geometry_msgs.h"
+#include "tf2_geometry_msgs/tf2_geometry_msgs.hpp"
 /**
  * @brief namespace for way point following, points are from a yaml file
  *
@@ -82,12 +82,12 @@ public:
   bool is_goal_done() const;
 
   /**
- * @brief given a parameter name on the yaml file, loads this parameter as nav2_msgs::msg::OrientedNavSatFix
+ * @brief given a parameter name on the yaml file, loads this parameter as geographic_msgs::msg::GeoPose
  *  Note that this parameter needs to be an array of doubles
  *
- * @return nav2_msgs::msg::OrientedNavSatFix
+ * @return geographic_msgs::msg::GeoPose
  */
-  std::vector<nav2_msgs::msg::OrientedNavSatFix>
+  std::vector<geographic_msgs::msg::GeoPose>
   loadGPSWaypointsFromYAML();
 
   void goalResponseCallback(GPSWaypointFollowerGoalHandle::SharedPtr goal_handle);
@@ -110,7 +110,7 @@ protected:
 
   GPSWaypointFollowerGoalHandle::SharedPtr gps_waypoint_follower_goalhandle_;
 
-  std::vector<nav2_msgs::msg::OrientedNavSatFix> gps_poses_from_yaml_;
+  std::vector<geographic_msgs::msg::GeoPose> gps_poses_from_yaml_;
 };
 }  // namespace nav2_gps_waypoint_follower_demo
 

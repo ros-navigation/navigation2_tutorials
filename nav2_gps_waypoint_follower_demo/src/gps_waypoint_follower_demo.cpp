@@ -100,19 +100,21 @@ void GPSWayPointFollowerClient::startWaypointFollowing()
 
 }
 
-std::vector<nav2_msgs::msg::OrientedNavSatFix>
+std::vector<geographic_msgs::msg::GeoPose>
 GPSWayPointFollowerClient::loadGPSWaypointsFromYAML()
 {
   std::vector<std::string> waypoints_vector =
     this->get_parameter("waypoints").as_string_array();
-  std::vector<nav2_msgs::msg::OrientedNavSatFix> gps_waypoint_msg_vector;
+  std::vector<geographic_msgs::msg::GeoPose> gps_waypoint_msg_vector;
   for (auto && curr_waypoint : waypoints_vector) {
+    std::cout << curr_waypoint << std::endl;
     try {
       this->declare_parameter(curr_waypoint, std::vector<double>({0}));
       std::vector<double> gps_waypoint_vector =
         this->get_parameter(curr_waypoint).as_double_array();
       // throw exception if incorrect format was detected from yaml file reading
       if (gps_waypoint_vector.size() != 4) {
+        std::cout << gps_waypoint_vector.size() << std::endl;
         RCLCPP_FATAL(
           this->get_logger(),
           "GPS waypoint that was loaded from YAML file seems to have incorrect"
@@ -124,7 +126,7 @@ GPSWayPointFollowerClient::loadGPSWaypointsFromYAML()
       }
       // construct the gps waypoint and push them to their vector
       // lat, long , alt
-      nav2_msgs::msg::OrientedNavSatFix gps_pose;
+      geographic_msgs::msg::GeoPose gps_pose;
       gps_pose.position.latitude = gps_waypoint_vector.at(0);
       gps_pose.position.longitude = gps_waypoint_vector.at(1);
       gps_pose.position.altitude = gps_waypoint_vector.at(2);

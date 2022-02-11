@@ -6,6 +6,7 @@ find_package(rclcpp REQUIRED)
 find_package(rclcpp_action REQUIRED)
 find_package(rclcpp_lifecycle REQUIRED)
 find_package(nav_msgs REQUIRED)
+find_package(geographic_msgs REQUIRED)
 find_package(nav2_common REQUIRED)
 find_package(nav2_core REQUIRED)
 find_package(nav2_util REQUIRED)
@@ -31,6 +32,7 @@ rclcpp_lifecycle
 nav2_util
 nav2_lifecycle_manager
 nav_msgs
+geographic_msgs
 nav2_msgs
 nav2_core
 nav2_waypoint_follower

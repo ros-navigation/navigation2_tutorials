@@ -20,12 +20,12 @@
 #include "rclcpp/subscription.hpp"
 #include "sensor_msgs/msg/nav_sat_fix.hpp"
 #include "sensor_msgs/msg/imu.hpp"
-#include "nav2_msgs/msg/oriented_nav_sat_fix.hpp"
+#include "geographic_msgs/msg/geo_pose.hpp"
 
 #include "message_filters/synchronizer.h"
 #include "message_filters/subscriber.h"
 #include "message_filters/sync_policies/approximate_time.h"
-#include "tf2_geometry_msgs/tf2_geometry_msgs.h"
+#include "tf2_geometry_msgs/tf2_geometry_msgs.hpp"
 #include "yaml-cpp/emitter.h"
 
 namespace nav2_gps_waypoint_follower_demo
@@ -56,7 +56,7 @@ private:
   void dumpCollectedWaypoints();
 
   rclcpp::TimerBase::SharedPtr timer_;
-  rclcpp::Publisher<nav2_msgs::msg::OrientedNavSatFix>::SharedPtr oriented_navsat_fix_publisher_;
+  rclcpp::Publisher<geographic_msgs::msg::GeoPose>::SharedPtr geopose_publisher_;
   message_filters::Subscriber<sensor_msgs::msg::NavSatFix> navsat_fix_subscriber_;
   message_filters::Subscriber<sensor_msgs::msg::Imu> imu_subscriber_;
   std::shared_ptr<SensorDataApprxTimeSyncer> sensor_data_approx_time_syncher_;
