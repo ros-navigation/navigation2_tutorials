@@ -18,12 +18,12 @@
 #include <ostream>
 #include <iostream>
 #include <memory>
-#include "nav2_gps_waypoint_follower_demo/gps_waypoint_collector.hpp"
+#include "nav2_gps_waypoint_follower_demo/gps_waypoint_logger.hpp"
 
 namespace nav2_gps_waypoint_follower_demo
 {
 
-GPSWaypointCollector::GPSWaypointCollector()
+GPSWaypointLogger::GPSWaypointLogger()
 : Node("gps_waypoint_collector_rclcpp_node"), is_first_msg_recieved_(false)
 {
   declare_parameter("frequency", 10);
@@ -34,7 +34,7 @@ GPSWaypointCollector::GPSWaypointCollector()
 
   timer_ = this->create_wall_timer(
     std::chrono::milliseconds(1000 / frequency_),
-    std::bind(&GPSWaypointCollector::timerCallback, this));
+    std::bind(&GPSWaypointLogger::timerCallback, this));
 
   navsat_fix_subscriber_.subscribe(this, "/gps", rmw_qos_profile_sensor_data);
   imu_subscriber_.subscribe(this, "/imu", rmw_qos_profile_sensor_data);
@@ -49,16 +49,16 @@ GPSWaypointCollector::GPSWaypointCollector()
 
   sensor_data_approx_time_syncher_->registerCallback(
     std::bind(
-      &GPSWaypointCollector::sensorDataCallback, this, std::placeholders::_1,
+      &GPSWaypointLogger::sensorDataCallback, this, std::placeholders::_1,
       std::placeholders::_2));
 }
 
-GPSWaypointCollector::~GPSWaypointCollector()
+GPSWaypointLogger::~GPSWaypointLogger()
 {
   dumpCollectedWaypoints();
 }
 
-void GPSWaypointCollector::timerCallback()
+void GPSWaypointLogger::timerCallback()
 {
   RCLCPP_INFO_ONCE(this->get_logger(), "Entering to timer callback, this is periodicly called");
   if (is_first_msg_recieved_) {
@@ -91,7 +91,7 @@ void GPSWaypointCollector::timerCallback()
   }
 }
 
-void GPSWaypointCollector::sensorDataCallback(
+void GPSWaypointLogger::sensorDataCallback(
   const sensor_msgs::msg::NavSatFix::ConstSharedPtr & gps,
   const sensor_msgs::msg::Imu::ConstSharedPtr & imu)
 {
@@ -101,7 +101,7 @@ void GPSWaypointCollector::sensorDataCallback(
   is_first_msg_recieved_ = true;
 }
 
-void GPSWaypointCollector::dumpCollectedWaypoints()
+void GPSWaypointLogger::dumpCollectedWaypoints()
 {
   YAML::Emitter waypoints;
   waypoints << YAML::BeginMap;
@@ -126,7 +126,7 @@ void GPSWaypointCollector::dumpCollectedWaypoints()
 int main(int argc, char const * argv[])
 {
   rclcpp::init(argc, argv);
-  auto node = std::make_shared<nav2_gps_waypoint_follower_demo::GPSWaypointCollector>();
+  auto node = std::make_shared<nav2_gps_waypoint_follower_demo::GPSWaypointLogger>();
   rclcpp::spin(node);
   rclcpp::shutdown();
   return 0;

@@ -52,17 +52,17 @@ ament_target_dependencies(${gps_client_executable_name}
 
 target_link_libraries(${gps_client_executable_name})
 
-set(gps_waypoint_collector_executable_name gps_waypoint_collector)
+set(gps_waypoint_logger_executable_name gps_waypoint_logger)
 
-add_executable(${gps_waypoint_collector_executable_name}
-  src/gps_waypoint_collector.cpp)
+add_executable(${gps_waypoint_logger_executable_name}
+  src/gps_waypoint_logger.cpp)
  
-ament_target_dependencies(${gps_waypoint_collector_executable_name}
+ament_target_dependencies(${gps_waypoint_logger_executable_name}
   ${dependencies})
 
-target_link_libraries(${gps_waypoint_collector_executable_name} ${YAML_CPP_LIBRARIES})
+target_link_libraries(${gps_waypoint_logger_executable_name} ${YAML_CPP_LIBRARIES})
 
-install(TARGETS ${gps_client_executable_name} ${gps_waypoint_collector_executable_name}
+install(TARGETS ${gps_client_executable_name} ${gps_waypoint_logger_executable_name}
   RUNTIME DESTINATION lib/${PROJECT_NAME})
 
 install(DIRECTORY include/

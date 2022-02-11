@@ -31,11 +31,11 @@
 namespace nav2_gps_waypoint_follower_demo
 {
 
-class GPSWaypointCollector : public rclcpp::Node
+class GPSWaypointLogger : public rclcpp::Node
 {
 public:
-  GPSWaypointCollector(/* args */);
-  ~GPSWaypointCollector();
+  GPSWaypointLogger(/* args */);
+  ~GPSWaypointLogger();
 
   /**
  * @brief Typedefs for shortnening Approx time Syncer initialization.
