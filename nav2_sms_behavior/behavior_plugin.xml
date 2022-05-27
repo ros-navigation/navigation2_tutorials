@@ -1,0 +1,5 @@
+<library path="nav2_sms_behavior_plugin">
+  <class name="nav2_sms_behavior/SendSms" type="nav2_sms_behavior::SendSms" base_class_type="nav2_core::Behavior">
+    <description>This is an example plugin which produces an SMS text message behavior.</description>
+  </class>
+</library>

@@ -5,35 +5,35 @@
 #include <chrono>
 #include <memory>
 
-#include "nav2_sms_recovery/sms_recovery.hpp"
+#include "nav2_sms_behavior/send_sms.hpp"
 
-namespace nav2_sms_recovery
+namespace nav2_sms_behavior
 {
 
-SMSRecovery::SMSRecovery()
-: Recovery<Action>()
-{
-}
-
-SMSRecovery::~SMSRecovery()
+SendSms::SendSms()
+: TimedBehavior<Action>()
 {
 }
 
-void SMSRecovery::onConfigure()
+SendSms::~SendSms()
+{
+}
+
+void SendSms::onConfigure()
 {
   auto node = node_.lock();
-  node->declare_parameter("account_sid");
+  node->declare_parameter("account_sid","");
   _account_sid = node->get_parameter("account_sid").as_string();
-  node->declare_parameter("auth_token");
+  node->declare_parameter("auth_token","");
   _auth_token = node->get_parameter("auth_token").as_string();
-  node->declare_parameter("from_number");
+  node->declare_parameter("from_number","");
   _from_number = node->get_parameter("from_number").as_string();
-  node->declare_parameter("to_number");
+  node->declare_parameter("to_number","");
   _to_number = node->get_parameter("to_number").as_string();
   _twilio = std::make_shared<twilio::Twilio>(_account_sid, _auth_token);
 }
 
-Status SMSRecovery::onRun(const std::shared_ptr<const Action::Goal> command)
+Status SendSms::onRun(const std::shared_ptr<const Action::Goal> command)
 {
   auto node = node_.lock();
   std::string response;
@@ -44,7 +44,6 @@ Status SMSRecovery::onRun(const std::shared_ptr<const Action::Goal> command)
     response,
     "",
     false);
-
   if (!message_success) {
     RCLCPP_INFO(node->get_logger(), "SMS send failed.");
     return Status::FAILED;
@@ -54,12 +53,12 @@ Status SMSRecovery::onRun(const std::shared_ptr<const Action::Goal> command)
   return Status::SUCCEEDED;
 }
 
-Status SMSRecovery::onCycleUpdate()
+Status SendSms::onCycleUpdate()
 {
   return Status::SUCCEEDED;
 }
 
-}  // namespace nav2_sms_recovery
+}  // namespace nav2_sms_behavior
 
 #include "pluginlib/class_list_macros.hpp"
-PLUGINLIB_EXPORT_CLASS(nav2_sms_recovery::SMSRecovery, nav2_core::Recovery)
+PLUGINLIB_EXPORT_CLASS(nav2_sms_behavior::SendSms, nav2_core::Behavior)

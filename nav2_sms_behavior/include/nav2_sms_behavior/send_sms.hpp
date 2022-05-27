@@ -8,21 +8,21 @@
 #include <string>
 #include <memory>
 
-#include "nav2_recoveries/recovery.hpp"
-#include "nav2_sms_recovery/action/sms_recovery.hpp"
-#include "nav2_sms_recovery/twilio.hpp"
+#include "nav2_behaviors/timed_behavior.hpp"
+#include "nav2_sms_behavior/action/send_sms.hpp"
+#include "nav2_sms_behavior/twilio.hpp"
 
-namespace nav2_sms_recovery
+namespace nav2_sms_behavior
 {
 
-using namespace nav2_recoveries;  // NOLINT
-using Action = nav2_sms_recovery::action::SmsRecovery;
+using namespace nav2_behaviors;  // NOLINT
+using Action = nav2_sms_behavior::action::SendSms;
 
-class SMSRecovery : public Recovery<Action>
+class SendSms : public TimedBehavior<Action>
 {
 public:
-  SMSRecovery();
-  ~SMSRecovery();
+  SendSms();
+  ~SendSms();
 
   Status onRun(const std::shared_ptr<const Action::Goal> command) override;
 
