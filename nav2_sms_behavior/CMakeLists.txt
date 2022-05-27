@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.5)
-project(nav2_sms_recovery)
+project(nav2_sms_behavior)
 
 # Default to C++14
 set(CMAKE_CXX_STANDARD 14)
@@ -19,8 +19,11 @@ find_package(builtin_interfaces REQUIRED)
 find_package(tf2_ros REQUIRED)
 find_package(nav2_costmap_2d REQUIRED)
 find_package(nav2_core REQUIRED)
-find_package(nav2_recoveries REQUIRED)
+find_package(nav2_behaviors REQUIRED)
 find_package(pluginlib REQUIRED)
+find_package(rosidl_default_generators REQUIRED)
+find_package(action_msgs REQUIRED)
+find_package(CURL REQUIRED)
 
 include_directories(
   include
@@ -43,16 +46,17 @@ set(dependencies
   nav2_costmap_2d
   nav2_core
   pluginlib
-  nav2_recoveries
+  nav2_behaviors
+  CURL
 )
 
 rosidl_generate_interfaces(${PROJECT_NAME}
-  "action/SmsRecovery.action"
+  "action/SendSms.action"
   DEPENDENCIES builtin_interfaces std_msgs
 )
 
 add_library(${library_name} SHARED
-  src/sms_recovery.cpp
+  src/send_sms.cpp
   src/twilio.cpp
 )
 
@@ -62,9 +66,11 @@ ament_target_dependencies(${library_name}
   ${dependencies}
 )
 
-rosidl_target_interfaces(${library_name} ${PROJECT_NAME} "rosidl_typesupport_cpp")
+rosidl_get_typesupport_target(cpp_typesupport_target ${PROJECT_NAME} "rosidl_typesupport_cpp")
+target_link_libraries(${library_name}  "${cpp_typesupport_target}")
 
-pluginlib_export_plugin_description_file(nav2_core recovery_plugin.xml)
+
+pluginlib_export_plugin_description_file(nav2_core behavior_plugin.xml)
 
 install(TARGETS ${library_name}
   ARCHIVE DESTINATION lib
@@ -76,7 +82,7 @@ install(DIRECTORY include/
   DESTINATION include/
 )
 
-install(FILES recovery_plugin.xml
+install(FILES behavior_plugin.xml
   DESTINATION share/${PROJECT_NAME}
 )
 

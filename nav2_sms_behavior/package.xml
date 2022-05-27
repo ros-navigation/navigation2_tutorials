@@ -1,9 +1,9 @@
 <?xml version="1.0"?>
 <?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
 <package format="3">
-  <name>nav2_sms_recovery</name>
+  <name>nav2_sms_behavior</name>
   <version>1.0.0</version>
-  <description>Simple SMS recovery.</description>
+  <description>Simple SMS send behavior.</description>
   <maintainer email="stevenmacenski@gmail.com">Steve Macenski</maintainer>
   <license>MIT</license>
 
@@ -25,15 +25,17 @@
   <depend>builtin_interfaces</depend>
   <depend>tf2_ros</depend>
   <depend>nav2_costmap_2d</depend>
-  <depend>nav2_recoveries</depend>
+  <depend>nav2_behaviors</depend>
   <depend>nav2_core</depend>
   <depend>pluginlib</depend>
+  <depend>action_msgs</depend>
+  <depend>CURL</depend>
 
   <test_depend>ament_lint_auto</test_depend>
   <test_depend>ament_lint_common</test_depend>
 
   <export>
     <build_type>ament_cmake</build_type>
-    <nav2_core plugin="${prefix}/recovery_plugin.xml" />
+    <nav2_core plugin="${prefix}/behavior_plugin.xml" />
   </export>
 </package>
