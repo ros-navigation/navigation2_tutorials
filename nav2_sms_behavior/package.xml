@@ -29,7 +29,7 @@
   <depend>nav2_core</depend>
   <depend>pluginlib</depend>
   <depend>action_msgs</depend>
-  <depend>libcurl</depend>
+  <depend>curl</depend>
 
   <test_depend>ament_lint_auto</test_depend>
   <test_depend>ament_lint_common</test_depend>
