@@ -21,7 +21,6 @@ from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument, GroupAction
 from launch.conditions import IfCondition
-from launch.substitutions import EqualsSubstitution, NotEqualsSubstitution
 from launch.substitutions import LaunchConfiguration, PythonExpression
 from launch_ros.actions import Node, LoadComposableNodes
 from launch_ros.descriptions import ComposableNode
@@ -90,7 +89,6 @@ def generate_launch_description():
         condition=IfCondition(PythonExpression(['not ', use_composition])),
         actions=[
             Node(
-                condition=IfCondition(EqualsSubstitution(LaunchConfiguration('mask'), '')),
                 package='nav2_map_server',
                 executable='map_server',
                 name='filter_mask_server',
@@ -98,16 +96,6 @@ def generate_launch_description():
                 output='screen',
                 emulate_tty=True,  # https://github.com/ros2/launch/issues/188
                 parameters=[configured_params]),
-            Node(
-                condition=IfCondition(NotEqualsSubstitution(LaunchConfiguration('mask'), '')),
-                package='nav2_map_server',
-                executable='map_server',
-                name='filter_mask_server',
-                namespace=namespace,
-                output='screen',
-                emulate_tty=True,  # https://github.com/ros2/launch/issues/188
-                parameters=[configured_params,
-                            {'yaml_filename': mask_yaml_file}]),
             Node(
                 package='nav2_map_server',
                 executable='costmap_filter_info_server',
