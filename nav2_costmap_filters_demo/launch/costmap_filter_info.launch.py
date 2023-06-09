@@ -22,9 +22,12 @@ from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument, GroupAction
 from launch.conditions import IfCondition
 from launch.substitutions import LaunchConfiguration, PythonExpression
+from launch.substitutions import NotEqualsSubstitution
 from launch_ros.actions import Node, LoadComposableNodes
+from launch_ros.actions import PushRosNamespace
 from launch_ros.descriptions import ComposableNode
 from nav2_common.launch import RewrittenYaml
+
 
 
 def generate_launch_description():
@@ -72,7 +75,7 @@ def generate_launch_description():
 
     declare_container_name_cmd = DeclareLaunchArgument(
         'container_name', default_value='nav2_container',
-        description='the name of conatiner that nodes will load in if use composition')
+        description='The name of container that nodes will load in if use composition')
 
     # Make re-written yaml
     param_substitutions = {
@@ -117,27 +120,34 @@ def generate_launch_description():
         ]
     )
 
-    load_composable_nodes = LoadComposableNodes(
-        condition=IfCondition(use_composition),
-        target_container=container_name_full,
-        composable_node_descriptions=[
-            ComposableNode(
-                package='nav2_map_server',
-                plugin='nav2_map_server::MapServer',
-                name='filter_mask_server',
-                parameters=[configured_params]),
-            ComposableNode(
-                package='nav2_map_server',
-                plugin='nav2_map_server::CostmapFilterInfoServer',
-                name='costmap_filter_info_server',
-                parameters=[configured_params]),
-            ComposableNode(
-                package='nav2_lifecycle_manager',
-                plugin='nav2_lifecycle_manager::LifecycleManager',
-                name='lifecycle_manager_costmap_filters',
-                parameters=[{'use_sim_time': use_sim_time},
-                            {'autostart': autostart},
-                            {'node_names': lifecycle_nodes}]),
+    load_composable_nodes = GroupAction(
+         condition=IfCondition(use_composition),
+         actions=[
+            PushRosNamespace(
+                condition=IfCondition(NotEqualsSubstitution(LaunchConfiguration('namespace'), '')),
+                namespace=namespace),
+            LoadComposableNodes(
+                target_container=container_name_full,
+                composable_node_descriptions=[
+                ComposableNode(
+                    package='nav2_map_server',
+                    plugin='nav2_map_server::MapServer',
+                    name='filter_mask_server',
+                    parameters=[configured_params]),
+                ComposableNode(
+                    package='nav2_map_server',
+                    plugin='nav2_map_server::CostmapFilterInfoServer',
+                    name='costmap_filter_info_server',
+                    parameters=[configured_params]),
+                ComposableNode(
+                    package='nav2_lifecycle_manager',
+                    plugin='nav2_lifecycle_manager::LifecycleManager',
+                    name='lifecycle_manager_costmap_filters',
+                    parameters=[{'use_sim_time': use_sim_time},
+                                {'autostart': autostart},
+                                {'node_names': lifecycle_nodes}]),
+                ]
+            )
         ]
     )
 
