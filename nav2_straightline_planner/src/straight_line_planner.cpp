@@ -133,7 +133,10 @@ nav_msgs::msg::Path StraightLine::createPlan(
     global_path.poses.push_back(pose);
   }
 
-  global_path.poses.push_back(goal);
+  geometry_msgs::msg::PoseStamped goal_pose = goal;
+  goal_pose.header.stamp = node_->now();
+  goal_pose.header.frame_id = global_frame_;
+  global_path.poses.push_back(goal_pose);
 
   return global_path;
 }
