@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
+<package format="3">
+  <name>nav2_gps_waypoint_follower_demo</name>
+  <version>0.0.0</version>
+  <description>Demo package for following GPS waypoints with nav2</description>
+  <maintainer email="pedro.gonzalez@eia.edu.co">root</maintainer>
+  <license>MIT</license>
+
+  <depend>navigation2</depend>
+
+  <export>
+    <build_type>ament_python</build_type>
+  </export>
+</package>
