@@ -13,6 +13,8 @@
 
 from launch import LaunchDescription
 from ament_index_python.packages import get_package_share_directory
+from launch.actions import IncludeLaunchDescription
+from launch.launch_description_sources import PythonLaunchDescriptionSource
 import launch_ros.actions
 import os
 import launch.actions
@@ -21,6 +23,7 @@ import launch.actions
 def generate_launch_description():
     gps_wpf_dir =  get_package_share_directory("nav2_gps_waypoint_follower_demo")
     rl_params_file = os.path.join(gps_wpf_dir, "config", "dual_ekf_navsat_params.yaml")
+    launch_dir = os.path.join(gps_wpf_dir, 'launch')
 
     return LaunchDescription(
         [
@@ -60,5 +63,9 @@ def generate_launch_description():
                     ("odometry/filtered", "odometry/global"),
                 ],
             ),
+            IncludeLaunchDescription(
+                PythonLaunchDescriptionSource(
+                os.path.join(launch_dir, 'static_transforms.launch.py'))
+                )
         ]
     )
