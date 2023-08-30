@@ -1,6 +1,6 @@
 <?xml version="1.0" ?>
 <sdf version="1.5">
-  <model name="turtlebot_with_gps">
+  <model name="turtlebot_waffle_gps">
       <pose>0.0 0.0 0.0 0.0 0.0 0.0</pose>
 
       <link name="base_link">

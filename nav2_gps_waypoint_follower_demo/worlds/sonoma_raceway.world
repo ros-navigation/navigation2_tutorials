@@ -48,7 +48,7 @@
     </physics>
 
     <include>
-      <uri>model://turtlebot_with_gps</uri>
+      <uri>model://turtlebot_waffle_gps</uri>
       <pose>2 -2.5 0.3 0 0 0</pose>
     </include>
 

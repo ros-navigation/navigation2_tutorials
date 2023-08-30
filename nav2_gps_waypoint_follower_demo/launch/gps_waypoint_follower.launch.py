@@ -24,8 +24,9 @@ from nav2_common.launch import RewrittenYaml
 
 def generate_launch_description():
     # Get the launch directory
-    bringup_dir = get_package_share_directory('nav2_bringup')  
-    gps_wpf_dir =  get_package_share_directory("nav2_gps_waypoint_follower_demo")
+    bringup_dir = get_package_share_directory('nav2_bringup')
+    gps_wpf_dir = get_package_share_directory(
+        "nav2_gps_waypoint_follower_demo")
     launch_dir = os.path.join(gps_wpf_dir, 'launch')
     params_dir = os.path.join(gps_wpf_dir, "config")
     nav2_params = os.path.join(params_dir, "nav2_no_map_params.yaml")
@@ -33,16 +34,15 @@ def generate_launch_description():
         source_file=nav2_params, root_key="", param_rewrites="", convert_types=True
     )
 
-    
     gazebo_cmd = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
-        os.path.join(launch_dir, 'gazebo_gps_world.launch.py'))
-        )
+            os.path.join(launch_dir, 'gazebo_gps_world.launch.py'))
+    )
 
     robot_localization_cmd = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
-        os.path.join(launch_dir, 'dual_ekf_navsat.launch.py'))
-        )
+            os.path.join(launch_dir, 'dual_ekf_navsat.launch.py'))
+    )
 
     navigation2_cmd = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(

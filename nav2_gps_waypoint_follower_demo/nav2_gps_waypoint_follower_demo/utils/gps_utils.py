@@ -2,6 +2,7 @@ import math
 from geographic_msgs.msg import GeoPose
 from geometry_msgs.msg import Quaternion
 
+
 def quaternion_from_euler(roll, pitch, yaw):
     """
     Converts euler roll, pitch, yaw to quaternion
@@ -18,7 +19,8 @@ def quaternion_from_euler(roll, pitch, yaw):
     q.x = cy * cp * sr - sy * sp * cr
     q.y = sy * cp * sr + cy * sp * cr
     q.z = sy * cp * cr - cy * sp * sr
-    return q 
+    return q
+
 
 def latLonYaw2Geopose(latitude: float, longitude: float, yaw: float = 0.0) -> GeoPose:
     """
