@@ -1,3 +1,11 @@
+# GPS WPF CHANGES: 
+# - amcl params where removed. They are not needed because global localization is provided
+#   by an ekf node on robot_localization fusing gps data with local odometry sources
+# - static layer is removed from both costmaps, in this tutorial we assume there is no map
+#   of the environment
+# - global costmap is set to be rolling to allow the robot to traverse big environment by
+#   following successive relatively close waypoints that fit in a smaller rolling costmap
+
 bt_navigator:
   ros__parameters:
     global_frame: map
@@ -140,6 +148,7 @@ controller_server:
       RotateToGoal.slowing_factor: 5.0
       RotateToGoal.lookahead_time: -1.0
 
+# GPS WPF CHANGE: Remove static layer
 local_costmap:
   local_costmap:
     ros__parameters:
@@ -177,11 +186,10 @@ local_costmap:
           raytrace_min_range: 0.0
           obstacle_max_range: 2.5
           obstacle_min_range: 0.0
-      static_layer:
-        plugin: "nav2_costmap_2d::StaticLayer"
-        map_subscribe_transient_local: True
       always_send_full_costmap: True
 
+# GPS WPF CHANGE: Remove static layer
+# GPS WPF CHANGE: Set rolling global costmap with 50x50 size. See note below
 global_costmap:
   global_costmap:
     ros__parameters:
