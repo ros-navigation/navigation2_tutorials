@@ -6,6 +6,11 @@
       <ambient>0.95 0.95 0.95 1</ambient>
       <background>0.3 0.3 0.3 1</background>
       <shadows>true</shadows>
+      <sky>
+        <clouds>
+          <speed>3</speed>
+        </clouds>
+      </sky>
     </scene>
     <include>
       <uri>model://sun</uri>
