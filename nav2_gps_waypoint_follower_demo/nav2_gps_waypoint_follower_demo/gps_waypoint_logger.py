@@ -26,7 +26,7 @@ class GpsGuiLogger(tk.Tk, Node):
         self.gps_pose_textbox = tk.Label(self, text="", width=45)
         self.gps_pose_textbox.pack()
 
-        self.log_gps_wp_button = tk.Button(self, text="Log Gps Position",
+        self.log_gps_wp_button = tk.Button(self, text="Log GPS Waypoint",
                                            command=self.log_waypoint)
         self.log_gps_wp_button.pack()
 
