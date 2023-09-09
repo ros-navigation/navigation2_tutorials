@@ -65,7 +65,7 @@ class GpsGuiLogger(tk.Tk, Node):
         Function to update the GUI with the last coordinates
         """
         self.gps_pose_textbox.config(
-            text=f"Lat: {self.last_gps_position.latitude:.6f}, Lon: {self.last_gps_position.longitude:.6f}, yaw: {self.last_heading:.2f}")
+            text=f"Lat: {self.last_gps_position.latitude:.6f}, Lon: {self.last_gps_position.longitude:.6f}, yaw: {self.last_heading:.2f} rad")
 
     def log_waypoint(self):
         """
