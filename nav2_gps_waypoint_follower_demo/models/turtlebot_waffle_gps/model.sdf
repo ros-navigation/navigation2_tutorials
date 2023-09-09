@@ -1,7 +1,9 @@
-<?xml version="1.0" ?>
-<sdf version="1.5">
-  <model name="turtlebot_waffle_gps">
+<?xml version="1.0"?>
+<sdf version="1.6">
+    <model name="turtlebot_waffle_gps"> 
       <pose>0.0 0.0 0.0 0.0 0.0 0.0</pose>
+
+      <link name="base_footprint"/>
 
       <link name="base_link">
 
@@ -41,7 +43,7 @@
       <link name="imu_link">
         <sensor name="tb3_imu" type="imu">
           <always_on>true</always_on>
-          <update_rate>30</update_rate>
+          <update_rate>200</update_rate>
           <imu>
             <angular_velocity>
               <x>
@@ -88,8 +90,8 @@
             <initial_orientation_as_reference>false</initial_orientation_as_reference>
             <ros>
               <!-- <namespace>/tb3</namespace> -->
-              <remapping>~/out:=/imu/data</remapping>
-            </ros>
+              <remapping>~/out:=imu</remapping>
+              </ros>
           </plugin>
         </sensor>
       </link>
@@ -173,7 +175,7 @@
 
         <sensor name="hls_lfcd_lds" type="ray">
           <always_on>true</always_on>
-          <visualize>false</visualize>
+          <visualize>true</visualize>
           <pose>-0.064 0 0.15 0 0 0</pose>
           <update_rate>5</update_rate>
           <ray>
@@ -187,7 +189,7 @@
             </scan>
             <range>
               <min>0.00000</min>
-              <max>10.0</max>
+              <max>20.0</max>
               <resolution>0.015000</resolution>
             </range>
             <noise>
@@ -391,6 +393,54 @@
         </collision>
       </link>
 
+      <link name="camera_link">
+        <inertial>
+          <pose>0.069 -0.047 0.107 0 0 0</pose>
+          <inertia>
+            <ixx>0.001</ixx>
+            <ixy>0.000</ixy>
+            <ixz>0.000</ixz>
+            <iyy>0.001</iyy>
+            <iyz>0.000</iyz>
+            <izz>0.001</izz>
+          </inertia>
+          <mass>0.035</mass>
+        </inertial>
+        <collision name="collision">
+          <pose>0 0.047 -0.005 0 0 0</pose>
+          <geometry>
+            <box>
+              <size>0.008 0.130 0.022</size>
+            </box>
+          </geometry>
+        </collision>
+
+        <pose>0.069 -0.047 0.107 0 0 0</pose>
+
+        <sensor name="intel_realsense_r200_depth" type="depth">
+          <always_on>1</always_on>
+          <update_rate>5</update_rate>
+          <pose>0.064 -0.047 0.107 0 0 0</pose>
+          <camera name="realsense_depth_camera">
+          </camera>
+          <plugin name="intel_realsense_r200_depth_driver" filename="libgazebo_ros_camera.so">
+            <ros>
+            </ros>
+            <camera_name>intel_realsense_r200_depth</camera_name>
+            <frame_name>camera_depth_frame</frame_name>
+            <hack_baseline>0.07</hack_baseline>
+            <min_depth>0.001</min_depth>
+            <max_depth>5.0</max_depth>
+          </plugin>
+        </sensor>
+      </link>
+
+      <joint name="base_joint" type="fixed">
+        <parent>base_footprint</parent>
+        <child>base_link</child>
+        <pose>0.0 0.0 0.010 0 0 0</pose>
+      </joint>
+
       <joint name="imu_joint" type="fixed">
         <parent>base_link</parent>
         <child>imu_link</child>
@@ -446,6 +496,15 @@
         </axis>
       </joint>
 
+      <joint name="camera_joint" type="fixed">
+        <parent>base_link</parent>
+        <child>camera_link</child>
+        <pose>0.064 -0.065 0.094 0 0 0</pose>
+        <axis>
+          <xyz>0 0 1</xyz>
+        </axis>
+      </joint>
+
       <plugin name="turtlebot3_diff_drive" filename="libgazebo_ros_diff_drive.so">
 
         <ros>
@@ -479,7 +538,7 @@
 
         <odometry_topic>odom</odometry_topic>
         <odometry_frame>odom</odometry_frame>
-        <robot_base_frame>base_link</robot_base_frame>
+        <robot_base_frame>base_footprint</robot_base_frame>
 
       </plugin>
 
@@ -494,5 +553,4 @@
       </plugin>
 
     </model>
-
 </sdf>
