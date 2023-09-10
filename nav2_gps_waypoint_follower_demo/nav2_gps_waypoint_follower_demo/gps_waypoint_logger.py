@@ -38,7 +38,7 @@ class GpsGuiLogger(tk.Tk, Node):
         )
         self.last_gps_position = NavSatFix()
 
-        self.imu_sub = self.create_subscription(
+        self.imu_subscription = self.create_subscription(
             Imu,
             '/imu',
             self.imu_callback,
@@ -78,6 +78,11 @@ class GpsGuiLogger(tk.Tk, Node):
         # in case the file does not exist, create with the new wps
         except FileNotFoundError:
             existing_data = {"waypoints": []}
+        # if other exception, raise the warining
+        except Exception as ex:
+            messagebox.showerror(
+                "Error", f"Error logging position: {str(ex)}")
+            return
 
         # build new waypoint object
         data = {
@@ -103,7 +108,7 @@ def main(args=None):
     rclpy.init(args=args)
 
     # allow to pass the logging path as an argument
-    default_yaml_file_path = os.path.expanduser("~/waypoints.yaml")
+    default_yaml_file_path = os.path.expanduser("~/gps_waypoints.yaml")
     if len(sys.argv) > 1:
         yaml_file_path = sys.argv[1]
     else:
