@@ -50,10 +50,11 @@
 
   <link name="base_footprint"/>
 
+  <!-- Since robot localization will publish transforms w.r.t. the base_link frame, we need to invert this transform so base_footprint becomes the child -->
   <joint name="base_joint" type="fixed">
-    <parent link="base_footprint"/>
-    <child link="base_link" />
-    <origin xyz="0 0 0.010" rpy="0 0 0"/>
+    <parent link="base_link"/>
+    <child link="base_footprint" />
+    <origin xyz="0 0 -0.010" rpy="0 0 0"/>
   </joint>
 
   <link name="base_link">
@@ -199,6 +200,7 @@
 
   <link name="imu_link"/>
 
+  <!-- Add the gps link so we get a static transform for the GPS -->
   <joint name="gps_joint" type="fixed">
     <parent link="base_link"/>
     <child link="gps_link"/>
