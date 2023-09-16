@@ -1,3 +1,8 @@
+<!-- This is the same turtlebot model in nav2 with the following changes -->
+<!-- 1. A GPS sensor is added -->
+<!-- 2. A link for the GPS sensor is added -->
+<!-- 3. The diff drive plugin does not publish the tf between odom->base_footprint, which is done by RL -->
+
 <?xml version="1.0"?>
 <sdf version="1.6">
     <model name="turtlebot_waffle_gps"> 
