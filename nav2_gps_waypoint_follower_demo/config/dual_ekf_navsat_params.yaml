@@ -3,7 +3,7 @@
 ekf_filter_node_odom:
   ros__parameters:
     frequency: 30.0
-    two_d_mode: true # Recommended to use 2d mode for nav2, since its world representation is 2d
+    two_d_mode: true # Recommended to use 2d mode for nav2 in mostly planar environments
     print_diagnostics: true
     debug: false
     publish_tf: true
