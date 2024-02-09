@@ -3,6 +3,5 @@ string message
 ---
 #result definition
 builtin_interfaces/Duration total_elapsed_time
-uint16 error_code
 ---
 #feedback definition

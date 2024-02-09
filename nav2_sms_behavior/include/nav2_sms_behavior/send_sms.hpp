@@ -24,17 +24,11 @@ public:
   SendSms();
   ~SendSms();
 
-  ResultStatus onRun(const std::shared_ptr<const Action::Goal> command) override;
+  Status onRun(const std::shared_ptr<const Action::Goal> command) override;
 
-  ResultStatus onCycleUpdate() override;
+  Status onCycleUpdate() override;
 
   void onConfigure() override;
-
-  /**
-   * @brief Method to determine the required costmap info
-   * @return costmap resources needed
-   */
-  nav2_core::CostmapInfoType getResourceInfo() override {return nav2_core::CostmapInfoType::NONE;}
 
 protected:
   std::string _account_sid;
