@@ -1,4 +1,4 @@
-capture_directory: "~"
+capture_directory: ~
 fixed_frame: map
 target_frame: map
 fix_orientation: false
@@ -7,14 +7,13 @@ enable_antialiasing: true
 show_displays: true
 show_status_bar: true
 show_capture_tools: true
-window_width: 1920
-window_height: 1016
-view_scale: 0.564473748
-offset_x: -55.0469894
-offset_y: -4.65194941
+window_width: 1000
+window_height: 804
+view_scale: 1
+offset_x: 0
+offset_y: 0
 use_latest_transforms: true
 background: "#a0a0a4"
-image_transport: raw
 displays:
   - type: mapviz_plugins/tile_map
     name: new display
