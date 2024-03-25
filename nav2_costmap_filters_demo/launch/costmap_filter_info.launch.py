@@ -19,9 +19,13 @@ import os
 from ament_index_python.packages import get_package_share_directory
 
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument
-from launch.substitutions import LaunchConfiguration
-from launch_ros.actions import Node
+from launch.actions import DeclareLaunchArgument, GroupAction
+from launch.conditions import IfCondition
+from launch.substitutions import LaunchConfiguration, PythonExpression
+from launch.substitutions import NotEqualsSubstitution
+from launch_ros.actions import Node, LoadComposableNodes
+from launch_ros.actions import PushRosNamespace
+from launch_ros.descriptions import ComposableNode
 from nav2_common.launch import RewrittenYaml
 
 
@@ -29,7 +33,6 @@ def generate_launch_description():
     # Get the launch directory
     costmap_filters_demo_dir = get_package_share_directory('nav2_costmap_filters_demo')
 
-    # Create our own temporary YAML files that include substitutions
     lifecycle_nodes = ['filter_mask_server', 'costmap_filter_info_server']
 
     # Parameters
@@ -38,6 +41,9 @@ def generate_launch_description():
     autostart = LaunchConfiguration('autostart')
     params_file = LaunchConfiguration('params_file')
     mask_yaml_file = LaunchConfiguration('mask')
+    use_composition = LaunchConfiguration('use_composition')
+    container_name = LaunchConfiguration('container_name')
+    container_name_full = (namespace, '/', container_name)
 
     # Declare the launch arguments
     declare_namespace_cmd = DeclareLaunchArgument(
@@ -55,12 +61,20 @@ def generate_launch_description():
         description='Automatically startup the nav2 stack')
 
     declare_params_file_cmd = DeclareLaunchArgument(
-            'params_file',
-            description='Full path to the ROS2 parameters file to use')
+        'params_file',
+        description='Full path to the ROS2 parameters file to use')
 
     declare_mask_yaml_file_cmd = DeclareLaunchArgument(
-            'mask',
-            description='Full path to filter mask yaml file to load')
+        'mask',
+        description='Full path to filter mask yaml file to load')
+
+    declare_use_composition_cmd = DeclareLaunchArgument(
+        'use_composition', default_value='True',
+        description='Use composed bringup if True')
+
+    declare_container_name_cmd = DeclareLaunchArgument(
+        'container_name', default_value='nav2_container',
+        description='The name of container that nodes will load in if use composition')
 
     # Make re-written yaml
     param_substitutions = {
@@ -73,35 +87,68 @@ def generate_launch_description():
         param_rewrites=param_substitutions,
         convert_types=True)
 
-    # Nodes launching commands
-    start_lifecycle_manager_cmd = Node(
-            package='nav2_lifecycle_manager',
-            executable='lifecycle_manager',
-            name='lifecycle_manager_costmap_filters',
-            namespace=namespace,
-            output='screen',
-            emulate_tty=True,  # https://github.com/ros2/launch/issues/188
-            parameters=[{'use_sim_time': use_sim_time},
-                        {'autostart': autostart},
-                        {'node_names': lifecycle_nodes}])
+    load_nodes = GroupAction(
+        condition=IfCondition(PythonExpression(['not ', use_composition])),
+        actions=[
+            Node(
+                package='nav2_map_server',
+                executable='map_server',
+                name='filter_mask_server',
+                namespace=namespace,
+                output='screen',
+                emulate_tty=True,  # https://github.com/ros2/launch/issues/188
+                parameters=[configured_params]),
+            Node(
+                package='nav2_map_server',
+                executable='costmap_filter_info_server',
+                name='costmap_filter_info_server',
+                namespace=namespace,
+                output='screen',
+                emulate_tty=True,  # https://github.com/ros2/launch/issues/188
+                parameters=[configured_params]),
+            Node(
+                package='nav2_lifecycle_manager',
+                executable='lifecycle_manager',
+                name='lifecycle_manager_costmap_filters',
+                namespace=namespace,
+                output='screen',
+                emulate_tty=True,  # https://github.com/ros2/launch/issues/188
+                parameters=[{'use_sim_time': use_sim_time},
+                            {'autostart': autostart},
+                            {'node_names': lifecycle_nodes}])
+        ]
+    )
 
-    start_map_server_cmd = Node(
-            package='nav2_map_server',
-            executable='map_server',
-            name='filter_mask_server',
-            namespace=namespace,
-            output='screen',
-            emulate_tty=True,  # https://github.com/ros2/launch/issues/188
-            parameters=[configured_params])
-
-    start_costmap_filter_info_server_cmd = Node(
-            package='nav2_map_server',
-            executable='costmap_filter_info_server',
-            name='costmap_filter_info_server',
-            namespace=namespace,
-            output='screen',
-            emulate_tty=True,  # https://github.com/ros2/launch/issues/188
-            parameters=[configured_params])
+    load_composable_nodes = GroupAction(
+        condition=IfCondition(use_composition),
+        actions=[
+            PushRosNamespace(
+                condition=IfCondition(NotEqualsSubstitution(LaunchConfiguration('namespace'), '')),
+                namespace=namespace),
+            LoadComposableNodes(
+                target_container=container_name_full,
+                composable_node_descriptions=[
+                    ComposableNode(
+                        package='nav2_map_server',
+                        plugin='nav2_map_server::MapServer',
+                        name='filter_mask_server',
+                        parameters=[configured_params]),
+                    ComposableNode(
+                        package='nav2_map_server',
+                        plugin='nav2_map_server::CostmapFilterInfoServer',
+                        name='costmap_filter_info_server',
+                        parameters=[configured_params]),
+                    ComposableNode(
+                        package='nav2_lifecycle_manager',
+                        plugin='nav2_lifecycle_manager::LifecycleManager',
+                        name='lifecycle_manager_costmap_filters',
+                        parameters=[{'use_sim_time': use_sim_time},
+                                    {'autostart': autostart},
+                                    {'node_names': lifecycle_nodes}]),
+                ]
+            )
+        ]
+    )
 
     ld = LaunchDescription()
 
@@ -111,8 +158,10 @@ def generate_launch_description():
     ld.add_action(declare_params_file_cmd)
     ld.add_action(declare_mask_yaml_file_cmd)
 
-    ld.add_action(start_lifecycle_manager_cmd)
-    ld.add_action(start_map_server_cmd)
-    ld.add_action(start_costmap_filter_info_server_cmd)
+    ld.add_action(declare_use_composition_cmd)
+    ld.add_action(declare_container_name_cmd)
+
+    ld.add_action(load_nodes)
+    ld.add_action(load_composable_nodes)
 
     return ld
