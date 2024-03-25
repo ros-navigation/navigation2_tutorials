@@ -33,7 +33,7 @@ void SendSms::onConfigure()
   _twilio = std::make_shared<twilio::Twilio>(_account_sid, _auth_token);
 }
 
-Status SendSms::onRun(const std::shared_ptr<const Action::Goal> command)
+ResultStatus SendSms::onRun(const std::shared_ptr<const Action::Goal> command)
 {
   auto node = node_.lock();
   std::string response;
@@ -46,16 +46,16 @@ Status SendSms::onRun(const std::shared_ptr<const Action::Goal> command)
     false);
   if (!message_success) {
     RCLCPP_INFO(node->get_logger(), "SMS send failed.");
-    return Status::FAILED;
+    return ResultStatus{Status::FAILED};
   }
 
   RCLCPP_INFO(node->get_logger(), "SMS sent successfully!");
-  return Status::SUCCEEDED;
+  return ResultStatus{Status::SUCCEEDED};
 }
 
-Status SendSms::onCycleUpdate()
+ResultStatus SendSms::onCycleUpdate()
 {
-  return Status::SUCCEEDED;
+  return ResultStatus{Status::SUCCEEDED};
 }
 
 }  // namespace nav2_sms_behavior
