@@ -120,8 +120,8 @@ def generate_launch_description():
     )
 
     load_composable_nodes = GroupAction(
-         condition=IfCondition(use_composition),
-         actions=[
+        condition=IfCondition(use_composition),
+        actions=[
             PushRosNamespace(
                 condition=IfCondition(NotEqualsSubstitution(LaunchConfiguration('namespace'), '')),
                 namespace=namespace),
