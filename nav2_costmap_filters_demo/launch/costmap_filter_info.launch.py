@@ -128,23 +128,23 @@ def generate_launch_description():
             LoadComposableNodes(
                 target_container=container_name_full,
                 composable_node_descriptions=[
-                ComposableNode(
-                    package='nav2_map_server',
-                    plugin='nav2_map_server::MapServer',
-                    name='filter_mask_server',
-                    parameters=[configured_params]),
-                ComposableNode(
-                    package='nav2_map_server',
-                    plugin='nav2_map_server::CostmapFilterInfoServer',
-                    name='costmap_filter_info_server',
-                    parameters=[configured_params]),
-                ComposableNode(
-                    package='nav2_lifecycle_manager',
-                    plugin='nav2_lifecycle_manager::LifecycleManager',
-                    name='lifecycle_manager_costmap_filters',
-                    parameters=[{'use_sim_time': use_sim_time},
-                                {'autostart': autostart},
-                                {'node_names': lifecycle_nodes}]),
+                    ComposableNode(
+                        package='nav2_map_server',
+                        plugin='nav2_map_server::MapServer',
+                        name='filter_mask_server',
+                        parameters=[configured_params]),
+                    ComposableNode(
+                        package='nav2_map_server',
+                        plugin='nav2_map_server::CostmapFilterInfoServer',
+                        name='costmap_filter_info_server',
+                        parameters=[configured_params]),
+                    ComposableNode(
+                        package='nav2_lifecycle_manager',
+                        plugin='nav2_lifecycle_manager::LifecycleManager',
+                        name='lifecycle_manager_costmap_filters',
+                        parameters=[{'use_sim_time': use_sim_time},
+                                    {'autostart': autostart},
+                                    {'node_names': lifecycle_nodes}]),
                 ]
             )
         ]
