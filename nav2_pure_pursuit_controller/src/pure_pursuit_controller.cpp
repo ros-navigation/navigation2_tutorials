@@ -2,7 +2,7 @@
  * SPDX-License-Identifier: BSD-3-Clause
  *
  *  Author(s): Shrijit Singh <shrijitsingh99@gmail.com>
- *
+ *  Contributor: Pham Cong Trang <phamcongtranghd@gmail.com>
  */
 
 #include <algorithm>
