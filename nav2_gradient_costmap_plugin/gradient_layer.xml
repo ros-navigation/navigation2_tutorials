@@ -1,5 +1,0 @@
-<library path="nav2_gradient_costmap_plugin_core">
-  <class name="nav2_gradient_costmap_plugin/GradientLayer" type="nav2_gradient_costmap_plugin::GradientLayer" base_class_type="nav2_costmap_2d::Layer">
-    <description>This is an example plugin which puts repeating costs gradients to costmap</description>
-  </class>
-</library>
