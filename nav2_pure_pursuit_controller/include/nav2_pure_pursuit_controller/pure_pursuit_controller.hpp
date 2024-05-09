@@ -35,6 +35,7 @@ public:
   void cleanup() override;
   void activate() override;
   void deactivate() override;
+  void setSpeedLimit(const double & speed_limit, const bool & percentage) override;
 
   geometry_msgs::msg::TwistStamped computeVelocityCommands(
     const geometry_msgs::msg::PoseStamped & pose,

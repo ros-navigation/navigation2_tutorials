@@ -110,6 +110,11 @@ void PurePursuitController::deactivate()
   global_pub_->on_deactivate();
 }
 
+void PurePursuitController::setSpeedLimit(const double& speed_limit, const bool& percentage)
+{
+  (void) speed_limit;
+  (void) percentage;
+}
 
 geometry_msgs::msg::TwistStamped PurePursuitController::computeVelocityCommands(
   const geometry_msgs::msg::PoseStamped & pose,
