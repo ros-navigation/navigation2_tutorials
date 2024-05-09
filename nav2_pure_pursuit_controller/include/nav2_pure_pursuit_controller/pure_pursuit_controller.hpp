@@ -39,7 +39,8 @@ public:
 
   geometry_msgs::msg::TwistStamped computeVelocityCommands(
     const geometry_msgs::msg::PoseStamped & pose,
-    const geometry_msgs::msg::Twist & velocity) override;
+    const geometry_msgs::msg::Twist & velocity,
+    nav2_core::GoalChecker * goal_checker) override;
 
   void setPlan(const nav_msgs::msg::Path & path) override;
 

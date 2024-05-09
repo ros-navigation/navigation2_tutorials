@@ -118,8 +118,12 @@ void PurePursuitController::setSpeedLimit(const double& speed_limit, const bool&
 
 geometry_msgs::msg::TwistStamped PurePursuitController::computeVelocityCommands(
   const geometry_msgs::msg::PoseStamped & pose,
-  const geometry_msgs::msg::Twist &)
+  const geometry_msgs::msg::Twist & velocity,
+  nav2_core::GoalChecker * goal_checker)
 {
+  (void)velocity;
+  (void)goal_checker;
+  
   auto transformed_plan = transformGlobalPlan(pose);
 
   // Find the first pose which is at a distance greater than the specified lookahed distance
