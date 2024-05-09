@@ -97,7 +97,7 @@ void PurePursuitController::activate()
   RCLCPP_INFO(
     logger_,
     "Activating controller: %s of type pure_pursuit_controller::PurePursuitController\"  %s",
-    plugin_name_.c_str());
+    plugin_name_.c_str(),plugin_name_.c_str());
   global_pub_->on_activate();
 }
 
@@ -106,7 +106,7 @@ void PurePursuitController::deactivate()
   RCLCPP_INFO(
     logger_,
     "Dectivating controller: %s of type pure_pursuit_controller::PurePursuitController\"  %s",
-    plugin_name_.c_str());
+    plugin_name_.c_str(),plugin_name_.c_str());
   global_pub_->on_deactivate();
 }
 
@@ -123,7 +123,7 @@ geometry_msgs::msg::TwistStamped PurePursuitController::computeVelocityCommands(
 {
   (void)velocity;
   (void)goal_checker;
-  
+
   auto transformed_plan = transformGlobalPlan(pose);
 
   // Find the first pose which is at a distance greater than the specified lookahed distance
