@@ -3,6 +3,7 @@
  *
  *  Author(s): Shrijit Singh <shrijitsingh99@gmail.com>
  *  Contributor: Pham Cong Trang <phamcongtranghd@gmail.com>
+ *  Contributor: Mitchell Sayer <mitchell4408@gmail.com>
  */
 
 #include <algorithm>

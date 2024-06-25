@@ -1,5 +1,5 @@
 # Nav2 Pure pursuit controller
-Tutorial code referenced in https://navigation.ros.org/plugin_tutorials/docs/writing_new_nav2controller_plugin.html
+Tutorial code referenced in https://docs.nav2.org/plugin_tutorials/docs/writing_new_nav2controller_plugin.html
 
 This controller implements a the pure pursuit algorithm to track a path.
 
