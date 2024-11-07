@@ -255,7 +255,7 @@ bool PurePursuitController::transformPose(
   const rclcpp::Duration & transform_tolerance
 ) const
 {
-  // Implementation taken as is fron nav_2d_utils in nav2_dwb_controller
+  // Implementation taken as is from nav_2d_utils in nav2_dwb_controller
 
   if (in_pose.header.frame_id == frame) {
     out_pose = in_pose;
