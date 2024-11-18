@@ -10,8 +10,7 @@
 #include <string>
 #include <memory>
 
-#include "nav2_core/controller_exceptions.hpp"
-#include "nav2_core/planner_exceptions.hpp"
+#include "nav2_core/exceptions.hpp"
 #include "nav2_util/node_utils.hpp"
 #include "nav2_pure_pursuit_controller/pure_pursuit_controller.hpp"
 #include "nav2_util/geometry_utils.hpp"
