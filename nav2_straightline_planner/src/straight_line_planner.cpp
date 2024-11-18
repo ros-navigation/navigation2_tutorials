@@ -89,7 +89,8 @@ void StraightLine::deactivate()
 
 nav_msgs::msg::Path StraightLine::createPlan(
   const geometry_msgs::msg::PoseStamped & start,
-  const geometry_msgs::msg::PoseStamped & goal)
+  const geometry_msgs::msg::PoseStamped & goal,
+  std::function<bool()> /*cancel_checker*/)
 {
   nav_msgs::msg::Path global_path;
 
