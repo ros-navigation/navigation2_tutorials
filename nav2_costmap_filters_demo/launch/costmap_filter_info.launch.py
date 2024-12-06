@@ -22,7 +22,7 @@ from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument, GroupAction
 from launch.conditions import IfCondition
 from launch.substitutions import LaunchConfiguration, PythonExpression
-from launch.substitutions import NotEqualsSubstitution
+# from launch.substitutions import NotEqualsSubstitution
 from launch_ros.actions import Node, LoadComposableNodes
 from launch_ros.actions import PushRosNamespace
 from launch_ros.descriptions import ComposableNode
@@ -123,7 +123,10 @@ def generate_launch_description():
         condition=IfCondition(use_composition),
         actions=[
             PushRosNamespace(
-                condition=IfCondition(NotEqualsSubstitution(LaunchConfiguration('namespace'), '')),
+                # condition=IfCondition(NotEqualsSubstitution(LaunchConfiguration('namespace'), '')),
+                condition=IfCondition(PythonExpression(["'",
+                                                        LaunchConfiguration('namespace'),
+                                                        "' != ''",])),
                 namespace=namespace),
             LoadComposableNodes(
                 target_container=container_name_full,
