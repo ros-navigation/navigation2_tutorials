@@ -154,16 +154,10 @@
 
   <gazebo reference="imu_link">
     <sensor name="imu_sensor" type="imu">
-      <plugin filename="libgazebo_ros_imu_sensor.so" name="imu_plugin">
-        <ros>
-          <namespace>/demo</namespace>
-          <remapping>~/out:=imu</remapping>
-        </ros>
-        <initial_orientation_as_reference>false</initial_orientation_as_reference>
-      </plugin>
       <always_on>true</always_on>
       <update_rate>100</update_rate>
       <visualize>true</visualize>
+      <topic>demo/imu</topic>
       <imu>
         <angular_velocity>
           <x>
@@ -222,31 +216,33 @@
   </gazebo>
 
   <gazebo>
-    <plugin name='diff_drive' filename='libgazebo_ros_diff_drive.so'>
-      <ros>
-        <namespace>/demo</namespace>
-        <remap from="cmd_vel" to="/cmd_vel"/>
-      </ros>
-
+    <plugin filename="gz-sim-diff-drive-system" name="gz::sim::systems::DiffDrive">
       <!-- wheels -->
       <left_joint>drivewhl_l_joint</left_joint>
       <right_joint>drivewhl_r_joint</right_joint>
 
       <!-- kinematics -->
       <wheel_separation>0.4</wheel_separation>
-      <wheel_diameter>0.2</wheel_diameter>
+      <wheel_radius>${wheel_radius}</wheel_radius>
 
       <!-- limits -->
-      <max_wheel_torque>20</max_wheel_torque>
-      <max_wheel_acceleration>1.0</max_wheel_acceleration>
+      <max_linear_acceleration>0.1</max_linear_acceleration>
+
+      <!-- input -->
+      <topic>/demo/cmd_vel</topic>
 
       <!-- output -->
-      <publish_odom>true</publish_odom>
-      <publish_odom_tf>false</publish_odom_tf>
-      <publish_wheel_tf>true</publish_wheel_tf>
+      <odom_topic>/demo/odom</odom_topic>
+      <tf_topic>/demo/tf</tf_topic>
 
-      <odometry_frame>odom</odometry_frame>
-      <robot_base_frame>base_link</robot_base_frame>
+      <frame_id>odom</frame_id>
+      <child_frame_id>base_link</child_frame_id>
+    </plugin>
+
+    <plugin
+      filename="gz-sim-joint-state-publisher-system"
+      name="gz::sim::systems::JointStatePublisher">
+      <topic>joint_states</topic>
     </plugin>
   </gazebo>
 
@@ -279,11 +275,13 @@
   </joint>
 
   <gazebo reference="lidar_link">
-    <sensor name="lidar" type="ray">
+    <sensor name="lidar" type="gpu_lidar">
       <always_on>true</always_on>
       <visualize>true</visualize>
       <update_rate>5</update_rate>
-      <ray>
+      <topic>scan</topic>
+      <gz_frame_id>lidar_link</gz_frame_id>
+      <lidar>
         <scan>
           <horizontal>
             <samples>360</samples>
@@ -302,14 +300,7 @@
           <mean>0.0</mean>
           <stddev>0.01</stddev>
         </noise>
-      </ray>
-      <plugin name="scan" filename="libgazebo_ros_ray_sensor.so">
-        <ros>
-          <remapping>~/out:=scan</remapping>
-        </ros>
-        <output_type>sensor_msgs/LaserScan</output_type>
-        <frame_name>lidar_link</frame_name>
-      </plugin>
+      </lidar>
     </sensor>
   </gazebo>
 
@@ -350,10 +341,13 @@
   </joint>
 
   <gazebo reference="camera_link">
-    <sensor name="depth_camera" type="depth">
+    <sensor name="depth_camera" type="depth_camera">
+      <always_on>true</always_on>
       <visualize>true</visualize>
       <update_rate>30.0</update_rate>
-      <camera name="camera">
+      <topic>depth_camera</topic>
+      <gz_frame_id>camera_depth_frame</gz_frame_id>
+      <camera>
         <horizontal_fov>1.047198</horizontal_fov>
         <image>
           <width>640</width>
@@ -365,24 +359,19 @@
           <far>3</far>
         </clip>
       </camera>
-      <plugin name="depth_camera_controller" filename="libgazebo_ros_camera.so">
-        <baseline>0.2</baseline>
-        <alwaysOn>true</alwaysOn>
-        <updateRate>0.0</updateRate>
-        <frame_name>camera_depth_frame</frame_name>
-        <pointCloudCutoff>0.5</pointCloudCutoff>
-        <pointCloudCutoffMax>3.0</pointCloudCutoffMax>
-        <distortionK1>0</distortionK1>
-        <distortionK2>0</distortionK2>
-        <distortionK3>0</distortionK3>
-        <distortionT1>0</distortionT1>
-        <distortionT2>0</distortionT2>
-        <CxPrime>0</CxPrime>
-        <Cx>0</Cx>
-        <Cy>0</Cy>
-        <focalLength>0</focalLength>
-        <hackBaseline>0</hackBaseline>
-      </plugin>
+      <baseline>0.2</baseline>
+      <pointCloudCutoff>0.5</pointCloudCutoff>
+      <pointCloudCutoffMax>3.0</pointCloudCutoffMax>
+      <distortionK1>0</distortionK1>
+      <distortionK2>0</distortionK2>
+      <distortionK3>0</distortionK3>
+      <distortionT1>0</distortionT1>
+      <distortionT2>0</distortionT2>
+      <CxPrime>0</CxPrime>
+      <Cx>0</Cx>
+      <Cy>0</Cy>
+      <focalLength>0</focalLength>
+      <hackBaseline>0</hackBaseline>
     </sensor>
   </gazebo>
 </robot>
