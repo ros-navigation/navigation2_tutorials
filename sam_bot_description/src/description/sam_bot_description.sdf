@@ -188,7 +188,7 @@
     </joint>
 
     <link name='imu_link'>
-      <must_be_base_link>true</must_be_base_link>
+      <pose relative_to="imu_joint"/>
       <visual name="imu_link_visual">
         <geometry>
           <box><size>
@@ -298,5 +298,120 @@
       <topic>joint_states</topic>
     </plugin>
 
+    <joint name="lidar_joint" type="fixed">
+      <parent>base_link</parent>
+      <child>lidar_link</child>
+      <pose relative_to="base_link">0.0 0.0 0.12 0 0 0</pose>
+    </joint>
+
+    <link name='lidar_link'>
+      <pose relative_to="lidar_joint"/>
+      <visual name="lidar_link_visual">
+        <geometry>
+          <cylinder>
+            <radius>0.0508</radius>
+            <length>0.055</length>
+          </cylinder>
+        </geometry>
+      </visual>
+
+      <collision name="lidar_link_collision">
+        <geometry>
+          <cylinder>
+            <radius>0.0508</radius>
+            <length>0.055</length>
+          </cylinder>
+        </geometry>
+      </collision>
+
+      <xacro:cylinder_inertia m="0.125" r="0.0508" h="0.055"/>
+
+      <sensor name="lidar" type="gpu_lidar">
+        <always_on>true</always_on>
+        <visualize>true</visualize>
+        <update_rate>5</update_rate>
+        <topic>scan</topic>
+        <gz_frame_id>lidar_link</gz_frame_id>
+        <ray>
+          <scan>
+            <horizontal>
+              <samples>360</samples>
+              <resolution>1.000000</resolution>
+              <min_angle>0.000000</min_angle>
+              <max_angle>6.280000</max_angle>
+            </horizontal>
+          </scan>
+          <range>
+            <min>0.120000</min>
+            <max>3.5</max>
+            <resolution>0.015000</resolution>
+          </range>
+          <noise>
+            <type>gaussian</type>
+            <mean>0.0</mean>
+            <stddev>0.01</stddev>
+          </noise>
+        </ray>
+      </sensor>
+    </link>
+
+    <joint name="camera_joint" type="fixed">
+      <parent>base_link</parent>
+      <child>camera_link</child>
+      <pose relative_to="base_link">0.215 0 0.05 0 0 0</pose>
+    </joint>
+
+    <link name='camera_link'>
+      <pose relative_to="camera_joint"/>
+      <visual name="camera_link_visual">
+        <geometry>
+          <box><size>
+            0.015 0.130 0.0222
+          </size></box>
+        </geometry>
+      </visual>
+
+      <collision name="camera_link_collision">
+        <geometry>
+          <box><size>
+            0.015 0.130 0.0222
+          </size></box>
+        </geometry>
+      </collision>
+
+      <xacro:box_inertia m="0.035" w="0.015" d="0.130" h="0.0222"/>
+
+      <sensor name="depth_camera" type="rgbd_camera">
+        <always_on>true</always_on>
+        <visualize>true</visualize>
+        <update_rate>30.0</update_rate>
+        <topic>depth_camera</topic>
+        <gz_frame_id>camera_link</gz_frame_id>
+        <camera>
+          <horizontal_fov>1.047198</horizontal_fov>
+          <image>
+            <width>640</width>
+            <height>480</height>
+          </image>
+          <clip>
+            <near>0.05</near>
+            <far>3</far>
+          </clip>
+        </camera>
+        <baseline>0.2</baseline>
+        <pointCloudCutoff>0.5</pointCloudCutoff>
+        <pointCloudCutoffMax>3.0</pointCloudCutoffMax>
+        <distortionK1>0</distortionK1>
+        <distortionK2>0</distortionK2>
+        <distortionK3>0</distortionK3>
+        <distortionT1>0</distortionT1>
+        <distortionT2>0</distortionT2>
+        <CxPrime>0</CxPrime>
+        <Cx>0</Cx>
+        <Cy>0</Cy>
+        <focalLength>0</focalLength>
+        <hackBaseline>0</hackBaseline>
+      </sensor>
+    </link>
   </model>
 </sdf>
