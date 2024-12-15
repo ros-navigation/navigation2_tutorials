@@ -212,6 +212,7 @@
         <update_rate>100</update_rate>
         <visualize>true</visualize>
         <topic>demo/imu</topic>
+        <gz_frame_id>imu_link</gz_frame_id>
         <imu>
           <angular_velocity>
             <x>
