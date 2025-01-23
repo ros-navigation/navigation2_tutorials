@@ -124,15 +124,6 @@
     <xacro:sphere_inertia m="0.5" r="${(wheel_radius+wheel_zoff-(base_height/2))}"/>
   </link>
 
-  <gazebo reference="front_caster">
-    <collision>
-      <surface><friction><ode>
-        <mu>0.001</mu>
-        <mu2>0.001</mu2>
-      </ode></friction></surface>
-    </collision>
-  </gazebo>
-
   <joint name="caster_joint" type="fixed">
     <parent link="base_link"/>
     <child link="front_caster"/>
@@ -160,101 +151,6 @@
     <child link="imu_link"/>
     <origin xyz="0 0 0.01"/>
   </joint>
-
-  <gazebo reference="imu_link">
-    <sensor name="imu_sensor" type="imu">
-      <always_on>true</always_on>
-      <update_rate>100</update_rate>
-      <visualize>true</visualize>
-      <topic>demo/imu</topic>
-      <gz_frame_id>imu_link</gz_frame_id>
-      <imu>
-        <angular_velocity>
-          <x>
-            <noise type="gaussian">
-              <mean>0.0</mean>
-              <stddev>2e-4</stddev>
-              <bias_mean>0.0000075</bias_mean>
-              <bias_stddev>0.0000008</bias_stddev>
-            </noise>
-          </x>
-          <y>
-            <noise type="gaussian">
-              <mean>0.0</mean>
-              <stddev>2e-4</stddev>
-              <bias_mean>0.0000075</bias_mean>
-              <bias_stddev>0.0000008</bias_stddev>
-            </noise>
-          </y>
-          <z>
-            <noise type="gaussian">
-              <mean>0.0</mean>
-              <stddev>2e-4</stddev>
-              <bias_mean>0.0000075</bias_mean>
-              <bias_stddev>0.0000008</bias_stddev>
-            </noise>
-          </z>
-        </angular_velocity>
-        <linear_acceleration>
-          <x>
-            <noise type="gaussian">
-              <mean>0.0</mean>
-              <stddev>1.7e-2</stddev>
-              <bias_mean>0.1</bias_mean>
-              <bias_stddev>0.001</bias_stddev>
-            </noise>
-          </x>
-          <y>
-            <noise type="gaussian">
-              <mean>0.0</mean>
-              <stddev>1.7e-2</stddev>
-              <bias_mean>0.1</bias_mean>
-              <bias_stddev>0.001</bias_stddev>
-            </noise>
-          </y>
-          <z>
-            <noise type="gaussian">
-              <mean>0.0</mean>
-              <stddev>1.7e-2</stddev>
-              <bias_mean>0.1</bias_mean>
-              <bias_stddev>0.001</bias_stddev>
-            </noise>
-          </z>
-        </linear_acceleration>
-      </imu>
-    </sensor>
-  </gazebo>
-
-  <gazebo>
-    <plugin filename="gz-sim-diff-drive-system" name="gz::sim::systems::DiffDrive">
-      <!-- wheels -->
-      <left_joint>drivewhl_l_joint</left_joint>
-      <right_joint>drivewhl_r_joint</right_joint>
-
-      <!-- kinematics -->
-      <wheel_separation>0.4</wheel_separation>
-      <wheel_radius>${wheel_radius}</wheel_radius>
-
-      <!-- limits -->
-      <max_linear_acceleration>0.1</max_linear_acceleration>
-
-      <!-- input -->
-      <topic>/demo/cmd_vel</topic>
-
-      <!-- output -->
-      <odom_topic>/demo/odom</odom_topic>
-      <tf_topic>/tf</tf_topic>
-
-      <frame_id>odom</frame_id>
-      <child_frame_id>base_link</child_frame_id>
-    </plugin>
-
-    <plugin
-      filename="gz-sim-joint-state-publisher-system"
-      name="gz::sim::systems::JointStatePublisher">
-      <topic>joint_states</topic>
-    </plugin>
-  </gazebo>
 
   <link name="lidar_link">
     <inertial>
@@ -284,36 +180,6 @@
     <origin xyz="0 0 0.12" rpy="0 0 0"/>
   </joint>
 
-  <gazebo reference="lidar_link">
-    <sensor name="lidar" type="gpu_lidar">
-      <always_on>true</always_on>
-      <visualize>true</visualize>
-      <update_rate>5</update_rate>
-      <topic>scan</topic>
-      <gz_frame_id>lidar_link</gz_frame_id>
-      <ray>
-        <scan>
-          <horizontal>
-            <samples>360</samples>
-            <resolution>1.000000</resolution>
-            <min_angle>0.000000</min_angle>
-            <max_angle>6.280000</max_angle>
-          </horizontal>
-        </scan>
-        <range>
-          <min>0.120000</min>
-          <max>3.5</max>
-          <resolution>0.015000</resolution>
-        </range>
-        <noise>
-          <type>gaussian</type>
-          <mean>0.0</mean>
-          <stddev>0.01</stddev>
-        </noise>
-      </ray>
-    </sensor>
-  </gazebo>
-
   <link name="camera_link">
     <visual>
       <origin xyz="0 0 0" rpy="0 0 0"/>
@@ -341,38 +207,4 @@
     <child link="camera_link"/>
     <origin xyz="0.215 0 0.05" rpy="0 0 0"/>
   </joint>
-
-  <gazebo reference="camera_link">
-    <sensor name="depth_camera" type="rgbd_camera">
-      <always_on>true</always_on>
-      <visualize>true</visualize>
-      <update_rate>30.0</update_rate>
-      <topic>depth_camera</topic>
-      <gz_frame_id>camera_link</gz_frame_id>
-      <camera>
-        <horizontal_fov>1.047198</horizontal_fov>
-        <image>
-          <width>640</width>
-          <height>480</height>
-        </image>
-        <clip>
-          <near>0.05</near>
-          <far>3</far>
-        </clip>
-      </camera>
-      <baseline>0.2</baseline>
-      <pointCloudCutoff>0.5</pointCloudCutoff>
-      <pointCloudCutoffMax>3.0</pointCloudCutoffMax>
-      <distortionK1>0</distortionK1>
-      <distortionK2>0</distortionK2>
-      <distortionK3>0</distortionK3>
-      <distortionT1>0</distortionT1>
-      <distortionT2>0</distortionT2>
-      <CxPrime>0</CxPrime>
-      <Cx>0</Cx>
-      <Cy>0</Cy>
-      <focalLength>0</focalLength>
-      <hackBaseline>0</hackBaseline>
-    </sensor>
-  </gazebo>
 </robot>
