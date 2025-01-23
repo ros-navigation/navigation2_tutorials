@@ -33,15 +33,15 @@ ekf_filter_node:
         world_frame: odom           # Defaults to the value of odom_frame if unspecified
         
         odom0: demo/odom
-        odom0_config: [true,  true,  true,
+        odom0_config: [false, false, false,
                        false, false, false,
-                       false, false, false,
+                       true, true, false,
                        false, false, true,
                        false, false, false]
 
         imu0: demo/imu
         imu0_config: [false, false, false,
-                      true,  true,  true,
                       false, false, false,
                       false, false, false,
-                      false, false, false]
+                      false, false, true,
+                      true, true, false]
