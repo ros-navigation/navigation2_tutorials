@@ -1,5 +1,5 @@
 ### ekf config file ###
-ekf_filter_node:
+ekf_node:
     ros__parameters:
 # The frequency, in Hz, at which the filter will output a position estimate. Note that the filter will not begin
 # computation until it receives at least one message from one of the inputs. It will then run continuously at the
@@ -33,15 +33,15 @@ ekf_filter_node:
         world_frame: odom           # Defaults to the value of odom_frame if unspecified
         
         odom0: demo/odom
-        odom0_config: [true,  true,  true,
+        odom0_config: [false, false, false,
                        false, false, false,
-                       false, false, false,
+                       true, true, false,
                        false, false, true,
                        false, false, false]
 
         imu0: demo/imu
         imu0_config: [false, false, false,
-                      true,  true,  true,
                       false, false, false,
                       false, false, false,
+                      false, false, true,
                       false, false, false]
