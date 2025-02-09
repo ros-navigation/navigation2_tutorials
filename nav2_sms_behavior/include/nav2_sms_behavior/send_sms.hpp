@@ -17,6 +17,7 @@ namespace nav2_sms_behavior
 
 using namespace nav2_behaviors;  // NOLINT
 using Action = nav2_sms_behavior::action::SendSms;
+using ActionResult = Action::Result;
 
 class SendSms : public TimedBehavior<Action>
 {

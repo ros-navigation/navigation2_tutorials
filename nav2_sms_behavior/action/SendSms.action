@@ -2,7 +2,15 @@
 string message
 ---
 #result definition
+
+# Error codes
+# Note: The expected priority order of the errors should match the message order
+uint16 NONE=0
+uint16 UNKNOWN=51110
+uint16 SMS_SEND_FAILED=51111
+
 builtin_interfaces/Duration total_elapsed_time
 uint16 error_code
+string error_msg
 ---
 #feedback definition
