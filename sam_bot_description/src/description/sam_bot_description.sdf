@@ -82,15 +82,13 @@
             ${base_length} ${base_width} ${base_height}
           </size></box>
         </geometry>
-      </collision>
-
-      <xacro:box_inertia m="15" w="${base_width}" d="${base_length}" h="${base_height}"/>
+      </collision> 
     </link>
 
     <!-- Robot Footprint -->
     <link name='base_footprint'>
       <pose relative_to="base_joint"/>
-      <xacro:box_inertia m="0" w="0" d="0" h="0"/>
+      <xacro:box_inertia m="15" w="${base_width}" d="${base_length}" h="${base_height}"/>
     </link>
 
     <joint name='base_joint' type='fixed'>
