@@ -22,7 +22,7 @@ displays:
       visible: true
       collapsed: false
       custom_sources:
-        - base_url: https://tiles.stadiamaps.com/tiles/alidade_satellite/{level}/{x}/{y}.png?api_key=d82ece0f-e8ff-4d1d-b61c-4724c3a6e09d
+        - base_url: https://tiles.stadiamaps.com/tiles/alidade_satellite/{level}/{x}/{y}.png?api_key=api_key
           max_zoom: 15
           name: Stadia (alidade_satellite)
           type: wmts
