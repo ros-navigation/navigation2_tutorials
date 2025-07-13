@@ -1,4 +1,4 @@
-# GPS WPF CHANGES:
+# GPS WPF CHANGES: 
 # - amcl params where removed. They are not needed because global localization is provided
 #   by an ekf node on robot_localization fusing gps data with local odometry sources
 # - static layer is removed from both costmaps, in this tutorial we assume there is no map
@@ -74,19 +74,9 @@ bt_navigator:
       - nav2_assisted_teleop_cancel_bt_node
       - nav2_drive_on_heading_cancel_bt_node
       - nav2_is_battery_charging_condition_bt_node
-    error_code_name_prefixes:
-      - assisted_teleop
-      - backup
-      - compute_path
-      - dock_robot
-      - drive_on_heading
-      - follow_path
-      - nav_thru_poses
-      - nav_to_pose
-      - route
-      - spin
-      - undock_robot
-      - wait
+    error_code_names:
+      - compute_path_error_code
+      - follow_path_error_code
 
 controller_server:
   ros__parameters:
@@ -210,7 +200,7 @@ global_costmap:
       robot_radius: 0.22
       resolution: 0.1
       # When using GPS navigation you will potentially traverse huge environments which are not practical to
-      # fit on a big static costmap. Thus it is recommended to use a rolling global costmap large enough to
+      # fit on a big static costmap. Thus it is recommended to use a rolling global costmap large enough to 
       # contain each pair of successive waypoints. See: https://github.com/ros-planning/navigation2/issues/2174
       rolling_window: True
       width: 50
