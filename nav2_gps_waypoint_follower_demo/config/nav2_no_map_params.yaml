@@ -158,6 +158,7 @@ controller_server:
       #   twirling_cost_power: 1
       #   twirling_cost_weight: 10.0
 
+# GPS WPF CHANGE: Remove static layer
 local_costmap:
   local_costmap:
     ros__parameters:
@@ -197,6 +198,7 @@ local_costmap:
           obstacle_min_range: 0.0
       always_send_full_costmap: True
 
+# GPS WPF CHANGE: Remove static layer
 global_costmap:
   global_costmap:
     ros__parameters:
