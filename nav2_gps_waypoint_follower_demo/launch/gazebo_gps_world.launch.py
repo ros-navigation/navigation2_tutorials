@@ -75,7 +75,7 @@ def generate_launch_description():
             "robot_sdf": robot_sdf,
             "x_pose": "2.0",
             "y_pose": "-2.5",
-            "z_pose": "0.3",
+            "z_pose": "0.33",
             "roll": "0.0",
             "pitch": "0.0",
             "yaw": "0.0",
