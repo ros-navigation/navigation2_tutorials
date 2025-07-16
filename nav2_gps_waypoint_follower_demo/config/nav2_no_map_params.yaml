@@ -195,9 +195,6 @@ local_costmap:
           raytrace_min_range: 0.0
           obstacle_max_range: 2.5
           obstacle_min_range: 0.0
-      static_layer:
-        plugin: "nav2_costmap_2d::StaticLayer"
-        map_subscribe_transient_local: True
       always_send_full_costmap: True
 
 global_costmap:
@@ -248,32 +245,6 @@ global_costmap:
 # map_server:
 #   ros__parameters:
 #     yaml_filename: ""
-
-keepout_filter_mask_server:
-  ros__parameters:
-    topic_name: "keepout_filter_mask"
-    # yaml_filename: ""
-
-keepout_costmap_filter_info_server:
-  ros__parameters:
-    type: 0
-    filter_info_topic: "keepout_costmap_filter_info"
-    mask_topic: "keepout_filter_mask"
-    base: 0.0
-    multiplier: 1.0
-
-speed_filter_mask_server:
-  ros__parameters:
-    topic_name: "speed_filter_mask"
-    # yaml_filename: ""
-
-speed_costmap_filter_info_server:
-  ros__parameters:
-    type: 1
-    filter_info_topic: "speed_costmap_filter_info"
-    mask_topic: "speed_filter_mask"
-    base: 100.0
-    multiplier: -1.0
 
 map_saver:
   ros__parameters:
