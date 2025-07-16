@@ -22,9 +22,12 @@ displays:
       visible: true
       collapsed: false
       custom_sources:
-        []
+        - base_url: https://tiles.stadiamaps.com/tiles/alidade_satellite/{level}/{x}/{y}.png?api_key=api_key
+          max_zoom: 15
+          name: Stadia (alidade_satellite)
+          type: wmts
       bing_api_key: ""
-      source: Bing Maps (terrain)
+      source: Stadia (alidade_satellite)
   - type: mapviz_plugins/point_click_publisher
     name: new display
     config:
