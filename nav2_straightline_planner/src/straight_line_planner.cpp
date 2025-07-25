@@ -41,7 +41,6 @@
 #include <cmath>
 #include <string>
 #include <memory>
-#include "nav2_util/node_utils.hpp"
 
 #include "nav2_straightline_planner/straight_line_planner.hpp"
 
@@ -49,7 +48,7 @@ namespace nav2_straightline_planner
 {
 
 void StraightLine::configure(
-  const rclcpp_lifecycle::LifecycleNode::WeakPtr & parent,
+  const nav2::LifecycleNode::WeakPtr & parent,
   std::string name, std::shared_ptr<tf2_ros::Buffer> tf,
   std::shared_ptr<nav2_costmap_2d::Costmap2DROS> costmap_ros)
 {
@@ -60,7 +59,7 @@ void StraightLine::configure(
   global_frame_ = costmap_ros->getGlobalFrameID();
 
   // Parameter initialization
-  nav2_util::declare_parameter_if_not_declared(
+  nav2::declare_parameter_if_not_declared(
     node_, name_ + ".interpolation_resolution", rclcpp::ParameterValue(
       0.1));
   node_->get_parameter(name_ + ".interpolation_resolution", interpolation_resolution_);

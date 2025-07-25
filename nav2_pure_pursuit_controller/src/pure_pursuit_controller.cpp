@@ -12,7 +12,6 @@
 
 #include "nav2_core/controller_exceptions.hpp"
 #include "nav2_core/planner_exceptions.hpp"
-#include "nav2_util/node_utils.hpp"
 #include "nav2_pure_pursuit_controller/pure_pursuit_controller.hpp"
 #include "nav2_util/geometry_utils.hpp"
 
@@ -20,7 +19,7 @@ using std::hypot;
 using std::min;
 using std::max;
 using std::abs;
-using nav2_util::declare_parameter_if_not_declared;
+using nav2::declare_parameter_if_not_declared;
 using nav2_util::geometry_utils::euclidean_distance;
 
 namespace nav2_pure_pursuit_controller
@@ -48,7 +47,7 @@ Iter min_by(Iter begin, Iter end, Getter getCompareVal)
 }
 
 void PurePursuitController::configure(
-  const rclcpp_lifecycle::LifecycleNode::WeakPtr & parent,
+  const nav2::LifecycleNode::WeakPtr & parent,
   std::string name, const std::shared_ptr<tf2_ros::Buffer> tf,
   const std::shared_ptr<nav2_costmap_2d::Costmap2DROS> costmap_ros)
 {
