@@ -16,6 +16,8 @@
 #include "rclcpp/rclcpp.hpp"
 #include "pluginlib/class_loader.hpp"
 #include "pluginlib/class_list_macros.hpp"
+#include "nav2_ros_common/lifecycle_node.hpp"
+#include "nav2_ros_common/node_utils.hpp"
 
 namespace nav2_pure_pursuit_controller
 {
@@ -27,7 +29,7 @@ public:
   ~PurePursuitController() override = default;
 
   void configure(
-    const rclcpp_lifecycle::LifecycleNode::WeakPtr & parent,
+    const nav2::LifecycleNode::WeakPtr & parent,
     std::string name, const std::shared_ptr<tf2_ros::Buffer> tf,
     const std::shared_ptr<nav2_costmap_2d::Costmap2DROS> costmap_ros) override;
 
@@ -55,7 +57,7 @@ protected:
     const rclcpp::Duration & transform_tolerance
   ) const;
 
-  rclcpp_lifecycle::LifecycleNode::WeakPtr node_;
+  nav2::LifecycleNode::WeakPtr node_;
   std::shared_ptr<tf2_ros::Buffer> tf_;
   std::string plugin_name_;
   std::shared_ptr<nav2_costmap_2d::Costmap2DROS> costmap_ros_;
@@ -68,7 +70,7 @@ protected:
   rclcpp::Duration transform_tolerance_ {0, 0};
 
   nav_msgs::msg::Path global_plan_;
-  std::shared_ptr<rclcpp_lifecycle::LifecyclePublisher<nav_msgs::msg::Path>> global_pub_;
+  std::shared_ptr<nav2::Publisher<nav_msgs::msg::Path>> global_pub_;
 };
 
 }  // namespace nav2_pure_pursuit_controller

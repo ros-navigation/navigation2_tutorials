@@ -51,7 +51,8 @@
 #include "nav2_core/global_planner.hpp"
 #include "nav_msgs/msg/path.hpp"
 #include "nav2_util/robot_utils.hpp"
-#include "nav2_util/lifecycle_node.hpp"
+#include "nav2_ros_common/lifecycle_node.hpp"
+#include "nav2_ros_common/node_utils.hpp"
 #include "nav2_costmap_2d/costmap_2d_ros.hpp"
 
 namespace nav2_straightline_planner
@@ -65,7 +66,7 @@ public:
 
   // plugin configure
   void configure(
-    const rclcpp_lifecycle::LifecycleNode::WeakPtr & parent,
+    const nav2::LifecycleNode::WeakPtr & parent,
     std::string name, std::shared_ptr<tf2_ros::Buffer> tf,
     std::shared_ptr<nav2_costmap_2d::Costmap2DROS> costmap_ros) override;
 
@@ -89,7 +90,7 @@ private:
   std::shared_ptr<tf2_ros::Buffer> tf_;
 
   // node ptr
-  nav2_util::LifecycleNode::SharedPtr node_;
+  nav2::LifecycleNode::SharedPtr node_;
 
   // Global Costmap
   nav2_costmap_2d::Costmap2D * costmap_;

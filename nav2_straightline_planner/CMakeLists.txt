@@ -24,6 +24,7 @@ find_package(tf2_ros REQUIRED)
 find_package(nav2_costmap_2d REQUIRED)
 find_package(nav2_core REQUIRED)
 find_package(pluginlib REQUIRED)
+find_package(nav2_ros_common)
 
 include_directories(
   include
@@ -46,14 +47,32 @@ set(dependencies
   nav2_costmap_2d
   nav2_core
   pluginlib
+  nav2_ros_common
 )
 
 add_library(${library_name} SHARED
   src/straight_line_planner.cpp
 )
 
-ament_target_dependencies(${library_name}
-  ${dependencies}
+target_link_libraries(nav2_straightline_planner_plugin PUBLIC
+    ${builtin_interfaces_TARGETS}
+    ${geometry_msgs_TARGETS}
+    ${nav2_msgs_TARGETS}
+    ${nav_msgs_TARGETS}
+    ${std_msgs_TARGETS}
+    ${visualization_msgs_TARGETS}
+    nav2_core::nav2_core
+    nav2_costmap_2d::filters
+    nav2_costmap_2d::layers
+    nav2_costmap_2d::nav2_costmap_2d_client
+    nav2_costmap_2d::nav2_costmap_2d_core
+    nav2_util::nav2_util_core
+    nav2_ros_common::nav2_ros_common
+    pluginlib::pluginlib
+    rclcpp::rclcpp
+    rclcpp_action::rclcpp_action
+    rclcpp_lifecycle::rclcpp_lifecycle
+    tf2_ros::tf2_ros
 )
 
 target_compile_definitions(${library_name} PUBLIC "PLUGINLIB__DISABLE_BOOST_FUNCTIONS")
