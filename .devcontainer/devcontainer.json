@@ -1,0 +1,47 @@
+{
+    "name": "Navigation2 Tutorials Development Container",
+    "privileged": true,
+    "remoteUser": "ros_user",
+    "build": {
+        "dockerfile": "Dockerfile",
+        "args": {
+            "USERNAME": "ros_user",
+            "ROS_DISTRO": "rolling"
+        }
+    },
+    "workspaceFolder": "/home/ws",
+    "workspaceMount": "source=${localWorkspaceFolder},target=/home/ws/src/navigation2_tutorials,type=bind",
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "ms-vscode.cpptools",
+                "ms-vscode.cpptools-themes",
+                "twxs.cmake",
+                "donjayamanne.python-extension-pack",
+                "eamodio.gitlens", 
+                "ms-iot.vscode-ros",
+                "ms-vscode.cmake-tools",
+                "ms-python.python",
+                "ms-python.flake8",
+                "charliermarsh.ruff"
+            ]
+        }
+    },
+    "containerEnv": {
+        "DISPLAY": "unix:0",
+        "ROS_AUTOMATIC_DISCOVERY_RANGE": "LOCALHOST",
+        "ROS_DOMAIN_ID": "42",
+        "ROS_DISTRO": "${ROS_DISTRO}"
+    },
+    "runArgs": [
+        "--net=host",
+        "--pid=host", 
+        "--ipc=host",
+        "-e", "DISPLAY=${env:DISPLAY}"
+    ],
+    "mounts": [
+        "source=/tmp/.X11-unix,target=/tmp/.X11-unix,type=bind,consistency=cached",
+        "source=/dev/dri,target=/dev/dri,type=bind,consistency=cached"
+    ],
+    "postCreateCommand": "sudo rosdep update && sudo rosdep install --from-paths src --ignore-src -r -y"
+} 
