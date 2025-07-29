@@ -1,6 +1,14 @@
 {
     "name": "Nav2",
-    "image": "ghcr.io/ros-navigation/nav2_docker:rolling-nightly",
+    "privileged": true,
+    "remoteUser": "root",
+    "build": {
+        "dockerfile": "Dockerfile",
+        "args": {
+            "USERNAME": "root",
+            "ROS_DISTRO": "rolling"
+        }
+    },
     "runArgs": [
         "--name=nav2",
         // "--cap-add=SYS_PTRACE", // enable debugging, e.g. gdb
@@ -46,5 +54,6 @@
                 "twxs.cmake"
             ]
         }
-    }
+    },
+    "postCreateCommand": "sudo apt-get update && rosdep update && sudo rosdep install --from-paths src --ignore-src -y -r"
 }
