@@ -35,8 +35,18 @@ add_library(nav2_pure_pursuit_controller SHARED
 # prevent pluginlib from using boost
 target_compile_definitions(nav2_pure_pursuit_controller PUBLIC "PLUGINLIB__DISABLE_BOOST_FUNCTIONS")
 
-ament_target_dependencies(nav2_pure_pursuit_controller
-  ${dependencies}
+target_link_libraries(nav2_pure_pursuit_controller PUBLIC
+  ${geometry_msgs_TARGETS}
+  ${nav_msgs_TARGETS}
+  nav2_core::nav2_core
+  nav2_costmap_2d::filters
+  nav2_costmap_2d::layers
+  nav2_costmap_2d::nav2_costmap_2d_client
+  nav2_costmap_2d::nav2_costmap_2d_core
+  nav2_util::nav2_util_core
+  pluginlib::pluginlib
+  rclcpp::rclcpp
+  tf2::tf2
 )
 
 install(TARGETS nav2_pure_pursuit_controller
