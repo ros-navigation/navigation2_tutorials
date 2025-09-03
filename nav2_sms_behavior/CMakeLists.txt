@@ -62,13 +62,34 @@ add_library(${library_name} SHARED
 
 target_compile_definitions(${library_name} PUBLIC "PLUGINLIB__DISABLE_BOOST_FUNCTIONS")
 
-ament_target_dependencies(${library_name}
-  ${dependencies}
-)
-
 rosidl_get_typesupport_target(cpp_typesupport_target ${PROJECT_NAME} "rosidl_typesupport_cpp")
-target_link_libraries(${library_name}  "${cpp_typesupport_target}")
-
+target_link_libraries(nav2_sms_behavior_plugin PUBLIC
+  ${builtin_interfaces_TARGETS}
+  ${geometry_msgs_TARGETS}
+  ${nav2_msgs_TARGETS}
+  ${nav_msgs_TARGETS}
+  ${std_msgs_TARGETS}
+  ${visualization_msgs_TARGETS}
+  nav2_behaviors::behavior_server_core
+  nav2_behaviors::nav2_assisted_teleop_behavior
+  nav2_behaviors::nav2_back_up_behavior
+  nav2_behaviors::nav2_drive_on_heading_behavior
+  nav2_behaviors::nav2_spin_behavior
+  nav2_behaviors::nav2_wait_behavior
+  nav2_core::nav2_core
+  nav2_costmap_2d::filters
+  nav2_costmap_2d::layers
+  nav2_costmap_2d::nav2_costmap_2d_client
+  nav2_costmap_2d::nav2_costmap_2d_core
+  nav2_util::nav2_util_core
+  pluginlib::pluginlib
+  rclcpp::rclcpp
+  rclcpp_action::rclcpp_action
+  rclcpp_lifecycle::rclcpp_lifecycle
+  tf2_ros::static_transform_broadcaster_node
+  tf2_ros::tf2_ros
+  ${cpp_typesupport_target}
+)
 
 pluginlib_export_plugin_description_file(nav2_core behavior_plugin.xml)
 

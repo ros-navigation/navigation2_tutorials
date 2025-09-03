@@ -52,8 +52,24 @@ add_library(${library_name} SHARED
   src/straight_line_planner.cpp
 )
 
-ament_target_dependencies(${library_name}
-  ${dependencies}
+target_link_libraries(nav2_straightline_planner_plugin PUBLIC
+    ${builtin_interfaces_TARGETS}
+    ${geometry_msgs_TARGETS}
+    ${nav2_msgs_TARGETS}
+    ${nav_msgs_TARGETS}
+    ${std_msgs_TARGETS}
+    ${visualization_msgs_TARGETS}
+    nav2_core::nav2_core
+    nav2_costmap_2d::filters
+    nav2_costmap_2d::layers
+    nav2_costmap_2d::nav2_costmap_2d_client
+    nav2_costmap_2d::nav2_costmap_2d_core
+    nav2_util::nav2_util_core
+    pluginlib::pluginlib
+    rclcpp::rclcpp
+    rclcpp_action::rclcpp_action
+    rclcpp_lifecycle::rclcpp_lifecycle
+    tf2_ros::tf2_ros
 )
 
 target_compile_definitions(${library_name} PUBLIC "PLUGINLIB__DISABLE_BOOST_FUNCTIONS")
