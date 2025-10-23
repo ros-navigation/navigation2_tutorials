@@ -89,6 +89,7 @@ target_link_libraries(nav2_sms_behavior_plugin PUBLIC
   tf2_ros::static_transform_broadcaster_node
   tf2_ros::tf2_ros
   ${cpp_typesupport_target}
+  ${CURL_LIBRARIES}
 )
 
 pluginlib_export_plugin_description_file(nav2_core behavior_plugin.xml)
