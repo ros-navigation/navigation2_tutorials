@@ -24,6 +24,10 @@
       name="gz::sim::systems::Sensors">
       <render_engine>ogre2</render_engine>
     </plugin>
+    <plugin
+        filename="gz-sim-navsat-system"
+        name="gz::sim::systems::NavSat">
+    </plugin>
     <light name='sun' type='directional'>
       <cast_shadows>1</cast_shadows>
       <pose>0 0 10 0 -0 0</pose>
@@ -104,11 +108,15 @@
     </scene>
     <wind/>
     <spherical_coordinates>
+      <!-- currently gazebo has a bug: instead of outputing lat, long, altitude in ENU
+      (x = East, y = North and z = Up) as the default configurations, it's outputting (-E)(-N)U,
+      therefore we rotate the default frame 180 so that it would go back to ENU 
+      see: https://github.com/osrf/gazebo/issues/2022 --> 
       <surface_model>EARTH_WGS84</surface_model>
-      <latitude_deg>0</latitude_deg>
-      <longitude_deg>0</longitude_deg>
-      <elevation>0</elevation>
-      <heading_deg>0</heading_deg>
+      <latitude_deg>38.161479</latitude_deg>
+      <longitude_deg>-122.454630</longitude_deg>
+      <elevation>488.0</elevation>
+      <heading_deg>180</heading_deg>
     </spherical_coordinates>
     <model name='unit_box'>
       <pose>1.51271 -0.181418 0.5 0 -0 0</pose>

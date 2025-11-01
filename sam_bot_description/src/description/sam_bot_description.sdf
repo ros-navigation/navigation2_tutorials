@@ -188,7 +188,6 @@
       <child>imu_link</child>
       <pose relative_to="base_link">0.0 0.0 0.01 0 0 0</pose>
     </joint>
-
     <link name='imu_link'>
       <pose relative_to="imu_joint"/>
       <visual name="imu_link_visual">
@@ -271,7 +270,50 @@
         </imu>
       </sensor>
     </link>
-
+    <joint name='gps_joint' type='fixed'>
+      <parent>base_link</parent>
+      <child>gps_link</child>
+      <pose relative_to="base_link">0.0 0.0 0.3 0 0 0</pose>
+    </joint>
+    <link name="gps_link">
+      <!-- Some weird bug occurs if this joint gets the default inertia -->
+        <inertial>
+          <pose>-0.052 0 0.111 0 0 0</pose>
+          <inertia>
+            <ixx>0.001</ixx>
+            <ixy>0.000</ixy>
+            <ixz>0.000</ixz>
+            <iyy>0.001</iyy>
+            <iyz>0.000</iyz>
+            <izz>0.001</izz>
+          </inertia>
+          <mass>0.125</mass>
+        </inertial>
+        <sensor name="tb3_gps" type="gps">
+          <always_on>true</always_on>
+          <update_rate>1</update_rate>
+          <pose>0 0 0 0 0 0</pose>
+          <topic>gps/fix</topic>
+          <gz_frame_id>gps_link</gz_frame_id>
+          <gps>
+            <position_sensing>
+              <horizontal>
+                <noise type="gaussian">
+                  <mean>0.0</mean>
+                  <stddev>0.01</stddev>
+                </noise>
+              </horizontal>
+              <vertical>
+                <noise type="gaussian">
+                  <mean>0.0</mean>
+                  <stddev>0.01</stddev>
+                </noise>
+              </vertical>
+            </position_sensing>
+          </gps>
+        </sensor>
+    </link>
+  
     <plugin filename="gz-sim-diff-drive-system" name="gz::sim::systems::DiffDrive">
       <!-- wheels -->
       <left_joint>drivewhl_l_joint</left_joint>
@@ -349,11 +391,11 @@
             <max>3.5</max>
             <resolution>0.015000</resolution>
           </range>
-          <noise>
+          <!-- <noise>
             <type>gaussian</type>
             <mean>0.0</mean>
             <stddev>0.01</stddev>
-          </noise>
+          </noise> -->
         </ray>
       </sensor>
     </link>

@@ -26,9 +26,9 @@
   direction: GZ_TO_ROS
 
 # Topic subscribed to by DiffDrive plugin
-- ros_topic_name: "/demo/cmd_vel"
+- ros_topic_name: "/cmd_vel"
   gz_topic_name: "/demo/cmd_vel"
-  ros_type_name: "geometry_msgs/msg/TwistStamped"
+  ros_type_name: "geometry_msgs/msg/Twist"
   gz_type_name: "gz.msgs.Twist"
   direction: ROS_TO_GZ
 
@@ -55,3 +55,13 @@
   ros_type_name: "sensor_msgs/msg/PointCloud2"
   gz_type_name: "gz.msgs.PointCloudPacked"
   direction: GZ_TO_ROS
+
+- topic_name: "gps/fix"
+  ros_type_name: "sensor_msgs/msg/NavSatFix"
+  gz_type_name: "gz.msgs.NavSat"
+  direction: GZ_TO_ROS
+
+# - topic_name: "tf"
+#   ros_type_name: "tf2_msgs/msg/TFMessage"
+#   gz_type_name: "gz.msgs.Pose_V"
+#   direction: GZ_TO_ROS
