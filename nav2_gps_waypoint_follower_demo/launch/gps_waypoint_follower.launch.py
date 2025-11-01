@@ -41,7 +41,7 @@ def generate_launch_description():
 
     declare_use_rviz_cmd = DeclareLaunchArgument(
         'use_rviz',
-        default_value='False',
+        default_value='true',
         description='Whether to start RVIZ')
 
     declare_use_mapviz_cmd = DeclareLaunchArgument(
