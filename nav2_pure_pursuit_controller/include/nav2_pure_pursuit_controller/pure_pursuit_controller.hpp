@@ -42,21 +42,13 @@ public:
   geometry_msgs::msg::TwistStamped computeVelocityCommands(
     const geometry_msgs::msg::PoseStamped & pose,
     const geometry_msgs::msg::Twist & velocity,
-    nav2_core::GoalChecker * goal_checker) override;
+    nav2_core::GoalChecker * goal_checker,
+    const nav_msgs::msg::Path & transformed_global_plan,
+    const geometry_msgs::msg::PoseStamped & global_goal) override;
 
-  void setPlan(const nav_msgs::msg::Path & path) override;
+  void newPathReceived(const nav_msgs::msg::Path & raw_global_path) override;
 
 protected:
-  nav_msgs::msg::Path transformGlobalPlan(const geometry_msgs::msg::PoseStamped & pose);
-
-  bool transformPose(
-    const std::shared_ptr<tf2_ros::Buffer> tf,
-    const std::string frame,
-    const geometry_msgs::msg::PoseStamped & in_pose,
-    geometry_msgs::msg::PoseStamped & out_pose,
-    const rclcpp::Duration & transform_tolerance
-  ) const;
-
   nav2::LifecycleNode::WeakPtr node_;
   std::shared_ptr<tf2_ros::Buffer> tf_;
   std::string plugin_name_;
@@ -68,9 +60,6 @@ protected:
   double lookahead_dist_;
   double max_angular_vel_;
   rclcpp::Duration transform_tolerance_ {0, 0};
-
-  nav_msgs::msg::Path global_plan_;
-  std::shared_ptr<nav2::Publisher<nav_msgs::msg::Path>> global_pub_;
 };
 
 }  // namespace nav2_pure_pursuit_controller
