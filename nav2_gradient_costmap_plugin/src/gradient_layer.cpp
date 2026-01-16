@@ -67,9 +67,8 @@ GradientLayer::GradientLayer()
 void
 GradientLayer::onInitialize()
 {
-  auto node = node_.lock(); 
-  declareParameter("enabled", rclcpp::ParameterValue(true));
-  node->get_parameter(name_ + "." + "enabled", enabled_);
+  auto node = node_.lock();
+  node->declare_or_get_parameter(name_ + "." + "enabled", true);
 
   need_recalculation_ = false;
   current_ = true;
@@ -172,7 +171,7 @@ GradientLayer::updateCosts(
     for (int i = min_i; i < max_i; i++) {
       int index = master_grid.getIndex(i, j);
       // setting the gradient cost
-      unsigned char cost = (LETHAL_OBSTACLE - gradient_index*GRADIENT_FACTOR)%255;
+      unsigned char cost = (LETHAL_OBSTACLE - gradient_index * GRADIENT_FACTOR) % 255;
       if (gradient_index <= GRADIENT_SIZE) {
         gradient_index++;
       } else {
