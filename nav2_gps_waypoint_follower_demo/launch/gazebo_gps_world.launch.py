@@ -13,21 +13,20 @@
 # limitations under the License.
 
 import os
+import tempfile
 
 from ament_index_python.packages import get_package_share_directory
-
-
 from launch import LaunchDescription
 from launch.actions import (
     DeclareLaunchArgument,
-    IncludeLaunchDescription,
     ExecuteProcess,
+    IncludeLaunchDescription,
+    OpaqueFunction,
+    RegisterEventHandler,
 )
-
-from launch.conditions import IfCondition
+from launch.event_handlers import OnShutdown
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import LaunchConfiguration
-
 from launch_ros.actions import Node
 
 
@@ -45,13 +44,25 @@ def generate_launch_description():
         description="Use simulation (Gazebo) clock if true",
     )
 
-    world_sdf = os.path.join(tutorial_dir, "worlds", "tb3_sonoma_raceway.sdf.xacro")
+    world = os.path.join(tutorial_dir, "worlds", "tb3_sonoma_raceway.sdf.xacro")
     robot_sdf = os.path.join(sim_dir, "urdf", "gz_waffle_gps.sdf.xacro")
 
     urdf = os.path.join(sim_dir, "urdf", "turtlebot3_waffle_gps.urdf")
     with open(urdf, "r") as infp:
         robot_description = infp.read()
 
+    # The SDF file for the world is a xacro file because we wanted to
+    # conditionally load the SceneBroadcaster plugin based on wheter we're
+    # running in headless mode. But currently, the Gazebo command line doesn't
+    # take SDF strings for worlds, so the output of xacro needs to be saved into
+    # a temporary file and passed to Gazebo.
+    world_sdf = tempfile.mktemp(prefix='nav2_', suffix='.sdf')
+    world_sdf_xacro = ExecuteProcess(
+            cmd=['xacro', '-o', world_sdf, ['headless:=false'], world])
+    remove_temp_sdf_file = RegisterEventHandler(event_handler=OnShutdown(
+        on_shutdown=[
+            OpaqueFunction(function=lambda _: os.remove(world_sdf))
+        ]))
     gazebo_server = ExecuteProcess(
         cmd=["gz", "sim", "-r", "-s", world_sdf],
         output="screen",
@@ -97,6 +108,8 @@ def generate_launch_description():
     # Declare the launch options
     ld.add_action(declare_use_sim_time_cmd)
 
+    ld.add_action(world_sdf_xacro)
+    ld.add_action(remove_temp_sdf_file)
     ld.add_action(gz_robot)
     ld.add_action(gazebo_server)
     ld.add_action(gazebo_client)
