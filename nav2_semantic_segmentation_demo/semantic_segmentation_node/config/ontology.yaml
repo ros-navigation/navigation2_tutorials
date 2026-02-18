@@ -1,0 +1,15 @@
+# Ontology configuration for semantic segmentation
+# Defines the classes to detect and their corresponding text prompts
+
+ontology:
+  # List of classes to detect
+  # Each entry maps a class name to its text prompt for GroundingDINO
+  classes:
+    - name: sidewalk
+      color: [255, 0, 0]  # BGR format: Blue
+    - name: grass
+      color: [0, 255, 0]  # BGR format: Green
+
+# Model settings
+model:
+  device: cpu  # cuda or cpu
