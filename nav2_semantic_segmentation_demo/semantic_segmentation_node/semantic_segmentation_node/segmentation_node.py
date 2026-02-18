@@ -3,6 +3,7 @@
 
 import rclpy
 from rclpy.node import Node
+from rclpy.qos import QoSProfile, DurabilityPolicy
 from sensor_msgs.msg import Image
 from vision_msgs.msg import LabelInfo, VisionClass
 from cv_bridge import CvBridge
@@ -24,13 +25,6 @@ class SegmentationNode(Node):
         package_share = Path(get_package_share_directory('semantic_segmentation_node'))
         model_path = package_share / 'models' / 'model.onnx'
         config_path = package_share / 'config' / 'ontology.yaml'
-        
-        # If model doesn't exist (symlink install), try source directory
-        if not model_path.exists():
-            import os
-            src_path = Path(__file__).parent.parent.parent / 'models' / 'model.onnx'
-            if src_path.exists():
-                model_path = src_path
         
         # Load config
         with open(config_path, 'r') as f:
@@ -111,7 +105,6 @@ class SegmentationNode(Node):
             )
         
         # Create LabelInfo publisher with transient local QoS
-        from rclpy.qos import QoSProfile, DurabilityPolicy
         label_info_qos = QoSProfile(
             depth=1,
             durability=DurabilityPolicy.TRANSIENT_LOCAL
