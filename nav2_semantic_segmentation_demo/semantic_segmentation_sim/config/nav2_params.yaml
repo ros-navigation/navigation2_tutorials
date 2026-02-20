@@ -244,6 +244,8 @@ local_costmap:
       height: 3
       resolution: 0.05
       robot_radius: 0.22
+      # ######## TUTORIAL CHANGE ###############
+      # Keep only the semantic_segmentation_layer and inflation_layer plugins for the demo
       plugins: ["semantic_segmentation_layer", "inflation_layer"]
       semantic_segmentation_layer:
         plugin: "semantic_segmentation_layer::SemanticSegmentationLayer"
@@ -281,6 +283,7 @@ local_costmap:
             mark_confidence: 0
             samples_to_max_cost: 0
             dominant_priority: False
+      # ######## TUTORIAL CHANGE END ###############
       inflation_layer:
         plugin: "nav2_costmap_2d::InflationLayer"
         cost_scaling_factor: 3.0
@@ -301,6 +304,8 @@ global_costmap:
       robot_radius: 0.22
       resolution: 0.05
       track_unknown_space: true
+      # ######## TUTORIAL CHANGE START###############
+      # Keep only the semantic_segmentation_layer and inflation_layer plugins for the demo
       plugins: ["semantic_segmentation_layer", "inflation_layer"]
       semantic_segmentation_layer:
         plugin: "semantic_segmentation_layer::SemanticSegmentationLayer"
@@ -338,6 +343,7 @@ global_costmap:
             mark_confidence: 0
             samples_to_max_cost: 0
             dominant_priority: False
+      # ######## TUTORIAL CHANGE END ###############
       inflation_layer:
         plugin: "nav2_costmap_2d::InflationLayer"
         cost_scaling_factor: 3.0

@@ -12,16 +12,24 @@ import numpy as np
 import onnxruntime as ort
 import yaml
 from pathlib import Path
+from ament_index_python.packages import get_package_share_directory
+
 
 
 class SegmentationNode(Node):
-    """ROS2 node that performs semantic segmentation using ONNX Runtime."""
+    """
+    ROS2 node that performs semantic segmentation using ONNX Runtime.
+
+    NOTE:
+      This node runs on CPU by default for compatibility with all hardware, but can run on GPU if you install the required 
+      ONNX Runtime GPU dependencies. See instructions at:
+      https://onnxruntime.ai/docs/execution-providers/CUDA-ExecutionProvider.html#requirements
+    """
 
     def __init__(self):
         super().__init__('segmentation_node')
         
         # Get package share directory using ament_index
-        from ament_index_python.packages import get_package_share_directory
         package_share = Path(get_package_share_directory('semantic_segmentation_node'))
         model_path = package_share / 'models' / 'model.onnx'
         config_path = package_share / 'config' / 'ontology.yaml'
@@ -33,11 +41,19 @@ class SegmentationNode(Node):
         self.class_colors = [cls['color'] for cls in config['ontology']['classes']]  # BGR format
         self.num_classes = len(self.class_names) + 1  # +1 for background
         
+        # Get device setting from config
+        device = config.get('model', {}).get('device', 'cpu').lower()
+        
         self.get_logger().info(f'Loading ONNX model from: {model_path}')
         self.get_logger().info(f'Number of classes: {self.num_classes}')
+        self.get_logger().info(f'Device setting: {device}')
         
-        # Load ONNX model with GPU support if available
-        providers = ['CUDAExecutionProvider', 'CPUExecutionProvider']
+        # Set providers based on device setting
+        if device == 'cuda':
+            providers = ['CUDAExecutionProvider', 'CPUExecutionProvider']
+        else:
+            providers = ['CPUExecutionProvider']
+        
         self.session = ort.InferenceSession(str(model_path), providers=providers)
         
         # Get model device

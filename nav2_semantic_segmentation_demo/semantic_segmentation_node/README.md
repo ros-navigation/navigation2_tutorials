@@ -23,7 +23,7 @@ The ONNX model (`models/model.onnx`) can be generated using the [Simple Segmenta
 
 ### Training Your Own Model
 
-1. Capture training images from Gazebo with varying lighting and environmental conditions
+1. Capture training images from a real robot or from Gazebo, with varying lighting and environmental conditions
 2. Use the Simple Segmentation Toolkit to label and train a model
 3. Convert the trained model to ONNX format: `python3 convert_to_onnx.py`
 4. Copy `model.onnx` to this package's `models/` directory

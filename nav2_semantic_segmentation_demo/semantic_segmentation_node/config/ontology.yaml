@@ -3,7 +3,9 @@
 
 ontology:
   # List of classes to detect
-  # Each entry maps a class name to its text prompt for GroundingDINO
+  # Classes should be defined in the same order as the model output. 0 is always the background class.
+  # This is used for building the label_info message, which maps class IDs to class names.
+  # and the colors are used for the mask's visualization.
   classes:
     - name: sidewalk
       color: [255, 0, 0]  # BGR format: Blue
