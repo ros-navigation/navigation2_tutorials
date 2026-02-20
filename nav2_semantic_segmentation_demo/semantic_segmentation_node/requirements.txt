@@ -1,0 +1,10 @@
+PyYAML>=5.4.0
+opencv-python>=4.5.0
+numpy>=1.19.0
+
+# ONNX Runtime for model inference
+# For CPU-only: onnxruntime
+# For GPU support: onnxruntime-gpu
+onnxruntime>=1.10.0
+
+

@@ -1,0 +1,17 @@
+# Ontology configuration for semantic segmentation
+# Defines the classes to detect and their corresponding text prompts
+
+ontology:
+  # List of classes to detect
+  # Classes should be defined in the same order as the model output. 0 is always the background class.
+  # This is used for building the label_info message, which maps class IDs to class names.
+  # and the colors are used for the mask's visualization.
+  classes:
+    - name: sidewalk
+      color: [255, 0, 0]  # BGR format: Blue
+    - name: grass
+      color: [0, 255, 0]  # BGR format: Green
+
+# Model settings
+model:
+  device: cpu  # cuda or cpu

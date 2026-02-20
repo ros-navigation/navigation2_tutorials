@@ -1,0 +1,33 @@
+<?xml version="1.0"?>
+<?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
+<package format="3">
+  <name>semantic_segmentation_sim</name>
+  <version>0.0.1</version>
+  <description>Launch files and Gazebo worlds for semantic segmentation layer testing</description>
+  <maintainer email="pedro.gonzalez@eia.edu.co">Pedro Gonzalez</maintainer>
+  <license>BSD-3-Clause</license>
+
+  <buildtool_depend>ament_cmake</buildtool_depend>
+
+  <depend>launch</depend>
+  <depend>launch_ros</depend>
+  <depend>ros_gz_sim</depend>
+  <depend>ros_gz_interfaces</depend>
+  <depend>nav2_minimal_tb4_sim</depend>
+  <depend>nav2_minimal_tb4_description</depend>
+  <depend>semantic_segmentation_layer</depend>
+  <depend>semantic_segmentation_node</depend>
+  <depend>navigation2</depend>
+  <depend>robot_state_publisher</depend>
+  <depend>xacro</depend>
+  <depend>sensor_msgs</depend>
+  <depend>cv_bridge</depend>
+  <depend>opencv</depend>
+
+  <test_depend>ament_lint_auto</test_depend>
+  <test_depend>ament_lint_common</test_depend>
+
+  <export>
+    <build_type>ament_cmake</build_type>
+  </export>
+</package>
