@@ -1,0 +1,59 @@
+{
+    "name": "Nav2",
+    "privileged": true,
+    "remoteUser": "root",
+    "build": {
+        "dockerfile": "Dockerfile",
+        "args": {
+            "USERNAME": "root",
+            "ROS_DISTRO": "rolling"
+        }
+    },
+    "runArgs": [
+        "--name=nav2",
+        // "--cap-add=SYS_PTRACE", // enable debugging, e.g. gdb
+        "--ipc=host", // shared memory transport with host, e.g. rviz GUIs
+        "--network=host", // network access to host interfaces, e.g. eth0
+        "--pid=host", // DDS discovery with host, without --network=host
+        "--privileged", // device access to host peripherals, e.g. USB
+        // "--security-opt=seccomp=unconfined", // enable debugging, e.g. gdb
+        "--volume=/tmp/.X11-unix:/tmp/.X11-unix:rw", // X11 socket for GUI applications
+        "--shm-size=1000mb", // shared memory size for DDS/ROS communication
+        "--gpus=all" // access to all GPUs, e.g. for GPU-accelerated applications
+    ],
+    "workspaceFolder": "/root/nav2_ws",
+    "workspaceMount": "source=${localWorkspaceFolder},target=/root/nav2_ws/src/navigation2_tutorials,type=bind",
+    "remoteEnv": {
+        "OVERLAY_MIXINS": "release ccache lld",
+        "CCACHE_DIR": "/tmp/.ccache",
+        "QT_X11_NO_MITSHM": "1", // disable MIT-SHM for X11 forwarding
+        "DISPLAY": "${localEnv:DISPLAY}" // X11 forwarding
+    },
+    "mounts": [
+        {
+            "source": "${localEnv:XAUTHORITY}",
+            "target": "/root/.Xauthority",
+            "type": "bind"
+        }
+    ],
+    "features": {
+        // "ghcr.io/devcontainers/features/desktop-lite:1": {},
+        "ghcr.io/devcontainers/features/github-cli:1": {}
+    },
+    "customizations": {
+        "codespaces": {},
+        "vscode": {
+            "settings": {},
+            "extensions": [
+                "althack.ament-task-provider",
+                "eamodio.gitlens",
+                "esbenp.prettier-vscode",
+                "GitHub.copilot",
+                "ms-iot.vscode-ros",
+                "streetsidesoftware.code-spell-checker",
+                "twxs.cmake"
+            ]
+        }
+    },
+    "postCreateCommand": "sudo apt-get update && rosdep update && sudo rosdep install --from-paths src --ignore-src -y -r"
+}
