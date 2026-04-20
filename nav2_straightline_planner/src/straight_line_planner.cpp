@@ -89,9 +89,14 @@ void StraightLine::deactivate()
 nav_msgs::msg::Path StraightLine::createPlan(
   const geometry_msgs::msg::PoseStamped & start,
   const geometry_msgs::msg::PoseStamped & goal,
+  const std::vector<geometry_msgs::msg::PoseStamped> & viapoints,
   std::function<bool()> /*cancel_checker*/)
 {
   nav_msgs::msg::Path global_path;
+
+  // copy the viapoints and append the goal since intermediate points would not include the goal
+  std::vector<geometry_msgs::msg::PoseStamped> goals = viapoints;
+  goals.push_back(goal);
 
   // Checking if the goal and start state is in the global frame
   if (start.header.frame_id != global_frame_) {
@@ -111,26 +116,32 @@ nav_msgs::msg::Path StraightLine::createPlan(
   global_path.poses.clear();
   global_path.header.stamp = node_->now();
   global_path.header.frame_id = global_frame_;
-  // calculating the number of loops for current value of interpolation_resolution_
-  int total_number_of_loop = std::hypot(
-    goal.pose.position.x - start.pose.position.x,
-    goal.pose.position.y - start.pose.position.y) /
-    interpolation_resolution_;
-  double x_increment = (goal.pose.position.x - start.pose.position.x) / total_number_of_loop;
-  double y_increment = (goal.pose.position.y - start.pose.position.y) / total_number_of_loop;
 
-  for (int i = 0; i < total_number_of_loop; ++i) {
-    geometry_msgs::msg::PoseStamped pose;
-    pose.pose.position.x = start.pose.position.x + x_increment * i;
-    pose.pose.position.y = start.pose.position.y + y_increment * i;
-    pose.pose.position.z = 0.0;
-    pose.pose.orientation.x = 0.0;
-    pose.pose.orientation.y = 0.0;
-    pose.pose.orientation.z = 0.0;
-    pose.pose.orientation.w = 1.0;
-    pose.header.stamp = node_->now();
-    pose.header.frame_id = global_frame_;
-    global_path.poses.push_back(pose);
+  geometry_msgs::msg::PoseStamped start_i = start;
+  for (auto goal_i : goals)
+  {
+    // calculating the number of loops for current value of interpolation_resolution_
+    int total_number_of_loop = std::hypot(
+      goal_i.pose.position.x - start_i.pose.position.x,
+      goal_i.pose.position.y - start_i.pose.position.y) /
+      interpolation_resolution_;
+    double x_increment = (goal_i.pose.position.x - start_i.pose.position.x) / total_number_of_loop;
+    double y_increment = (goal_i.pose.position.y - start_i.pose.position.y) / total_number_of_loop;
+
+    for (int i = 0; i < total_number_of_loop; ++i) {
+      geometry_msgs::msg::PoseStamped pose;
+      pose.pose.position.x = start_i.pose.position.x + x_increment * i;
+      pose.pose.position.y = start_i.pose.position.y + y_increment * i;
+      pose.pose.position.z = 0.0;
+      pose.pose.orientation.x = 0.0;
+      pose.pose.orientation.y = 0.0;
+      pose.pose.orientation.z = 0.0;
+      pose.pose.orientation.w = 1.0;
+      pose.header.stamp = node_->now();
+      pose.header.frame_id = global_frame_;
+      global_path.poses.push_back(pose);
+    }
+    start_i = goal_i;
   }
 
   geometry_msgs::msg::PoseStamped goal_pose = goal;
