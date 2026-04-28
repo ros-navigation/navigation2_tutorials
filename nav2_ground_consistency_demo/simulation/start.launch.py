@@ -2,12 +2,9 @@
 Launch file for nav2_ground_consistency_costmap_plugin demo.
 
 Launches Gazebo simulation with Husky robot and ROS 2 bridge for pointcloud.
-Supports joystick control via teleop_twist_joy.
 
 Usage:
   ros2 launch nav2_ground_consistency_demo start.launch.py
-  ros2 launch nav2_ground_consistency_demo start.launch.py world_file_name:=urban_stairwell_world
-  ros2 launch nav2_ground_consistency_demo start.launch.py use_joystick:=True joy_config_file:=/path/to/joy_config.yaml teleop_twist_config_file:=/path/to/teleop_config.yaml
 """
 
 import yaml
