@@ -65,7 +65,6 @@ local_costmap:
       
       ground_consistency:
         plugin: "nav2_ground_consistency_costmap_plugin::GroundConsistencyLayer"
-        enabled: true
         ground_points_topic: /ground_segmentation/ground_points
         nonground_points_topic: /ground_segmentation/obstacle_points
         tf_timeout: 0.1
