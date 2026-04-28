@@ -19,16 +19,18 @@ This tutorial demonstrates a complete workflow for terrain-aware navigation:
 It is assumed you have ROS 2 Jazzy installed. To install all required dependencies and clone necessary repositories, run:
 
 ```bash
-mkdir -p src && cd src
-git clone https://github.com/haider8645/nav2_ground_consistency_demo.git
+   cd ~/path_to_my_custom_workspace
+   mkdir -p src && cd src
+   git clone https://github.com/ros-navigation/navigation2_tutorials.git && cd navigation2_tutorials
+   git checkout -t remotes/origin/jazzy
 ```
-
 ```bash
-cd nav2_ground_consistency_demo
-bash install_dependencies.bash ~/my_custom_workspace
+   cd nav2_ground_consistency_demo
+   bash install_dependencies.bash ~/path_to_my_custom_workspace
 ```
 
 This script will:
+
 - Install required ROS 2 packages (Gazebo, visualization, navigation)
 - Clone all necessary repositories (KISS-ICP, ground segmentation, etc.)
 - Provide next steps for building
