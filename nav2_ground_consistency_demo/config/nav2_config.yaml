@@ -1,0 +1,101 @@
+/**:
+  ros__parameters:
+    use_sim_time: true
+
+controller_server:
+  ros__parameters:
+    use_sim_time: true
+    controller_frequency: 10.0
+    min_x_velocity_threshold: 0.001
+    min_y_velocity_threshold: 0.001
+    min_theta_velocity_threshold: 0.001
+    progress_checker_plugins: ["progress_checker"]
+    goal_checker_plugins: ["goal_checker"]
+    controller_plugins: ["FollowPath"]
+    progress_checker:
+      plugin: "nav2_controller::SimpleProgressChecker"
+      required_movement_radius: 1.0
+      movement_time_allowance: 10.0
+    goal_checker:
+      plugin: "nav2_controller::SimpleGoalChecker"
+      xy_goal_tolerance: 0.5
+      yaw_goal_tolerance: 0.25
+      stateful: true
+    FollowPath:
+      plugin: "nav2_regulated_pure_pursuit_controller::RegulatedPurePursuitController"
+      desired_linear_vel: 0.5
+      lookahead_dist: 0.6
+      min_lookahead_dist: 0.3
+      max_lookahead_dist: 0.9
+      use_velocity_scaled_lookahead_dist: false
+      min_approach_linear_velocity: 0.05
+      approach_velocity_scaling_dist: 0.6
+      max_allowed_time_to_collision_up_to_carrot: 1.0
+      max_robot_pose_search_dist: 0.1
+      use_collision_detection: true
+      regulated_linear_scaling_min_speed: 0.1
+      regulated_linear_scaling_min_radius: 0.9
+      use_regulated_linear_velocity_scaling: true
+      use_rotate_to_heading: false
+      rotate_to_heading_angular_vel: 1.8
+      max_angular_accel: 3.2
+      rotate_to_heading_min_angle: 0.785
+      allow_reversing: true
+      use_interpolation: true
+      transform_tolerance: 0.1
+
+controller_server_rclcpp_node:
+  ros__parameters:
+    use_sim_time: true
+
+local_costmap:
+  local_costmap:
+    ros__parameters:
+      update_frequency: 10.0
+      publish_frequency: 10.0
+      global_frame: odom
+      robot_base_frame: husky/base_link
+      use_sim_time: true
+      rolling_window: true
+      width: 50
+      height: 50
+      resolution: 0.3
+      footprint: "[[0.495, 0.349], [0.495, -0.349], [-0.495, -0.349], [-0.495, 0.349]]"
+      plugins: ["ground_consistency", "inflation_layer"]
+      
+      ground_consistency:
+        plugin: "nav2_ground_consistency_costmap_plugin::GroundConsistencyLayer"
+        enabled: true
+        ground_points_topic: /ground_segmentation/ground_points
+        nonground_points_topic: /ground_segmentation/obstacle_points
+        tf_timeout: 0.1
+        min_clearance: 0.1
+        robot_height: 0.92
+        maximum_height_filter: 2.0
+        ground_inc: 1.0
+        nonground_inc: 1.5
+        nonground_decay: 0.93
+        ground_decay: 0.80
+        max_score: 5000.0
+        nonground_occ_thresh: 6.0
+        nonground_prob_thresh: 0.75
+        enable_kpi_logging: true
+        discretize_costs: true
+        max_data_range: 50.0
+        ground_neighbor_search_cells: 0
+      
+      inflation_layer:
+        plugin: "nav2_costmap_2d::InflationLayer"
+        enabled: true
+        cost_scaling_factor: 1.0
+        inflation_radius: 0.7
+      
+      always_send_full_costmap: false
+
+local_costmap_client:
+  ros__parameters:
+    use_sim_time: true
+
+local_costmap_rclcpp_node:
+  ros__parameters:
+    use_sim_time: true

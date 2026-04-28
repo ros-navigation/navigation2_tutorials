@@ -1,0 +1,63 @@
+# Ground Segmentation Parameters for nav2_ground_consistency_demo
+# Tuned for: Clearpath Husky + Velodyne VLP-16 in Gazebo
+# 
+# Tuning Guide:
+# 1. Keep groundInlierThreshold < cellSizeZPhase2
+# 2. If small obstacles disappear → decrease groundInlierThreshold
+# 3. If ground becomes fragmented → increase groundInlierThreshold
+# 4. If slopes are obstacles → increase slopeThresholdDegrees
+# 5. If ramps become ground too easily → decrease slopeThresholdDegrees
+# 6. Larger cellSizeX/Y = smoother but less detail
+# 7. cellSizeZPhase2 controls vertical resolution (smaller = better obstacle separation)
+# 8. High LiDAR noise → enable downsample, increase groundInlierThreshold
+# 9. Steep terrain → enable use_imu_orientation
+
+ground_segmentation:
+  ros__parameters:
+    # Frame configuration
+    robot_frame: "husky/base_link"
+    
+    # Processing bounds (relative to robot)
+    maxX:  50.0
+    minX: -50.0
+    maxY:  50.0
+    minY: -50.0
+    maxZ:  50.0
+    minZ: -50.0
+    
+    # Optional preprocessing
+    downsample: false                     # Disable for simulation (clean data)
+    downsample_resolution: 0.1
+    
+    # Lidar mounting height (negative = above ground)
+    lidar_to_ground: -0.92
+    
+    # Transform tolerance for TF lookups
+    transform_tolerance: 0.5
+
+    # Ground Detection Parameters
+    # Cell dimensions for ground modeling
+    cellSizeX: 1.0                        # Horizontal resolution (smaller = more detail)
+    cellSizeY: 1.0                        # Horizontal resolution
+    cellSizeZ: 4.0                        # Vertical bin height (phase 1)
+    cellSizeZPhase2: 1.0                  # Ground layer thickness (phase 2)
+    
+    # Slope threshold: classify steep surfaces as obstacles
+    slopeThresholdDegrees: 30.0           # Tune: <20° if missing ramps, >30° if false positives
+    
+    # Point classification threshold (m)
+    groundInlierThreshold: 0.2           # Distance from fitted ground plane
+                                         # Smaller = stricter (fewer ground points)
+                                         # Larger = more forgiving (marks more as ground)
+    
+    # Centroid search radius for ground clustering (cells)
+    centroidSearchRadius: 5.0
+    
+    # Optional: Use IMU for gravity direction (if available)
+    use_imu_orientation: true
+    
+    # Max vertical deviation from fitted ground plane
+    maxGroundHeightDeviation: 0.2
+
+    # Logging
+    show_benchmark: true                 # Set to true for performance debugging

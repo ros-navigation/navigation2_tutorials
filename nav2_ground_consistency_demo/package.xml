@@ -1,0 +1,43 @@
+<?xml version="1.0"?>
+<?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
+<package format="3">
+  <name>nav2_ground_consistency_demo</name>
+  <version>1.0.0</version>
+  <description>
+    Demo package for nav2_ground_consistency_costmap_plugin.
+    Provides Gazebo simulation with Husky robot equipped with Velodyne VLP-16 3D lidar
+    for testing and evaluating ground/obstacle classification in nav2 costmaps.
+  </description>
+
+  <maintainer email="haider_khan.lodhi@dfki.de">DFKI RIC</maintainer>
+  <author email="haider_khan.lodhi@dfki.de">DFKI RIC</author>
+
+  <license>BSD-3-Clause</license>
+
+  <url type="website">https://github.com/dfki-ric/nav2_ground_consistency_costmap_plugin</url>
+  <url type="repository">https://github.com/dfki-ric/nav2_ground_consistency_costmap_plugin</url>
+  <url type="bugtracker">https://github.com/dfki-ric/nav2_ground_consistency_costmap_plugin/issues</url>
+
+  <buildtool_depend>ament_cmake</buildtool_depend>
+
+  <!-- ROS 2 dependencies -->
+  <depend>ros_gz_sim</depend>
+  <depend>ros_gz_bridge</depend>
+  <depend>tf2_ros</depend>
+  <depend>nav2_bringup</depend>
+  <depend>nav2_ground_consistency_costmap_plugin</depend>
+  <depend>kiss_icp</depend>
+  <depend>ground_segmentation_ros2</depend>
+
+  <!-- Optional dependencies for demo -->
+  <depend>joy</depend>
+  <depend>teleop_twist_joy</depend>
+  <depend>rviz2</depend>
+
+  <!-- Testing -->
+  <test_depend>ament_cmake_pytest</test_depend>
+
+  <export>
+    <build_type>ament_cmake</build_type>
+  </export>
+</package>
