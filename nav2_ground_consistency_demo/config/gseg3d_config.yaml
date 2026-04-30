@@ -60,4 +60,4 @@ ground_segmentation:
     maxGroundHeightDeviation: 0.2
 
     # Logging
-    show_benchmark: true                 # Set to true for performance debugging
+    show_benchmark: false                 # Set to true for performance debugging

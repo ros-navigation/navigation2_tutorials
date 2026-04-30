@@ -1,12 +1,15 @@
 """
 Nav2 navigation stack launch for nav2_ground_consistency_demo.
 
+This launch file uses the Nav2 bringup launch which includes the full navigation stack,
+configured with the Ground Consistency costmap layer for terrain-aware navigation.
+
 Usage:
   ros2 launch nav2_ground_consistency_demo full_stack.launch.py
 """
 
 from launch import LaunchDescription
-from launch.actions import IncludeLaunchDescription, DeclareLaunchArgument, TimerAction
+from launch.actions import IncludeLaunchDescription, DeclareLaunchArgument
 from launch.substitutions import LaunchConfiguration, PathJoinSubstitution
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.conditions import IfCondition
@@ -63,84 +66,7 @@ def generate_launch_description():
             "use_sim_time": "true",
         }.items()
     )
-    
-    # Delay nav2 stack start to ensure localization and ground segmentation are ready
-    nav2_launch_delayed = TimerAction(
-        period=3.0,
-        actions=[
-            # Local Costmap Server (with ground consistency layer)
-            Node(
-                package="nav2_costmap_2d",
-                executable="costmap_2d_markers_server",
-                name="local_costmap_markers",
-                output="screen",
-                parameters=[
-                    PathJoinSubstitution([nav2_demo_dir, "config/nav2_config.yaml"]),
-                    {"use_sim_time": True}
-                ]
-            ),
-            Node(
-                package="nav2_costmap_2d",
-                executable="costmap_2d_node",
-                name="local_costmap_server",
-                output="screen",
-                remappings=[
-                    ("costmap/costmap_raw", "local_costmap/costmap_raw"),
-                    ("costmap/footprint", "local_costmap/footprint"),
-                    ("costmap/published_footprint", "local_costmap/published_footprint"),
-                ],
-                parameters=[
-                    PathJoinSubstitution([nav2_demo_dir, "config/nav2_config.yaml"]),
-                    {"use_sim_time": True}
-                ]
-            ),
-            # Planner Server
-            Node(
-                package="nav2_planner",
-                executable="planner_server",
-                name="planner_server",
-                output="screen",
-                parameters=[
-                    PathJoinSubstitution([nav2_demo_dir, "config/nav2_config.yaml"]),
-                    {"use_sim_time": True}
-                ]
-            ),
-            # Controller Server
-            Node(
-                package="nav2_controller",
-                executable="controller_server",
-                name="controller_server",
-                output="screen",
-                parameters=[
-                    PathJoinSubstitution([nav2_demo_dir, "config/nav2_config.yaml"]),
-                    {"use_sim_time": True}
-                ]
-            ),
-            # Behavior Server
-            Node(
-                package="nav2_behaviors",
-                executable="behavior_server",
-                name="behavior_server",
-                output="screen",
-                parameters=[
-                    PathJoinSubstitution([nav2_demo_dir, "config/nav2_config.yaml"]),
-                    {"use_sim_time": True}
-                ]
-            ),
-            # Navigation to Pose Server
-            Node(
-                package="nav2_bt_navigator",
-                executable="bt_navigator",
-                name="bt_navigator",
-                output="screen",
-                parameters=[
-                    PathJoinSubstitution([nav2_demo_dir, "config/nav2_config.yaml"]),
-                    {"use_sim_time": True}
-                ]
-            ),
-        ]
-    )
-    
+
     # RViz2 visualization (optional, controlled by launch parameter)
     rviz = Node(
         package="rviz2",
@@ -163,6 +89,5 @@ def generate_launch_description():
         gazebo_launch,
         kiss_icp_launch,
         ground_seg_launch,
-        nav2_launch_delayed,
         rviz,
     ])
