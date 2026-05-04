@@ -74,7 +74,7 @@ def launch_setup(context, *args, **kwargs):
     executable='parameter_bridge',
     arguments=bridge_args,
     remappings=[
-      ('/model/husky/cmd_vel', '/husky/cmd_vel'),
+      ('/model/husky/cmd_vel', '/cmd_vel'),
       (f'/world/{world_file_name}/clock', '/clock'),
       (f'/world/{world_file_name}/model/husky/link/base_link/sensor/front_laser/scan/points', '/husky/scan/points'),
       (f'/world/{world_file_name}/model/husky/link/base_link/sensor/imu_sensor/imu', '/husky/imu')
@@ -90,6 +90,7 @@ def launch_setup(context, *args, **kwargs):
     package='tf2_ros',
     executable='static_transform_publisher',
     arguments=['0.0012', '0', '0.716', '0', '0', '0', 'husky/base_link', 'husky/base_link/front_laser'],
+    parameters=[{'use_sim_time': True}],
   )
   
   # Static transform publisher: husky/base_link -> husky/base_link/imu_sensor
@@ -98,6 +99,7 @@ def launch_setup(context, *args, **kwargs):
     package='tf2_ros',
     executable='static_transform_publisher',
     arguments=['0', '0', '0', '0', '0', '0', 'husky/base_link', 'husky/base_link/imu_sensor'],
+    parameters=[{'use_sim_time': True}],
   )
   
   return [gazebo_launch_description, ign_ros2_bridge, static_tf_front_laser, static_tf_imu]   

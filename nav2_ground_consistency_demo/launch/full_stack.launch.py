@@ -1,9 +1,6 @@
 """
 Nav2 navigation stack launch for nav2_ground_consistency_demo.
 
-This launch file uses the Nav2 bringup launch which includes the full navigation stack,
-configured with the Ground Consistency costmap layer for terrain-aware navigation.
-
 Usage:
   ros2 launch nav2_ground_consistency_demo full_stack.launch.py
 """
@@ -20,6 +17,7 @@ def generate_launch_description():
     
     # Get package directories
     nav2_demo_dir = FindPackageShare("nav2_ground_consistency_demo")
+    nav2_bringup_dir = FindPackageShare("nav2_bringup")
     kiss_icp_dir = FindPackageShare("kiss_icp")
     ground_seg_dir = FindPackageShare("ground_segmentation_ros2")
     
@@ -43,12 +41,12 @@ def generate_launch_description():
             "topic": "/husky/scan/points",
             "base_frame": "husky/base_link",
             "lidar_odom_frame": "odom",
-            "invert_odom_tf": "false", 
-            "visualize": "false",
+            "invert_odom_tf": "False", 
+            "visualize": "False",
             "config_file": PathJoinSubstitution(
                 [nav2_demo_dir, "config/kiss_icp_config.yaml"]
             ),
-            "use_sim_time": "true",
+            "use_sim_time": "True",
         }.items()
     )
     
@@ -63,16 +61,40 @@ def generate_launch_description():
             "params_file": PathJoinSubstitution(
                 [nav2_demo_dir, "config/gseg3d_config.yaml"]
             ),
-            "use_sim_time": "true",
+            "use_sim_time": "True",
         }.items()
     )
-
+    
+    # Nav2 bringup launch with ground consistency configuration
+    nav2_bringup = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(
+            PathJoinSubstitution([nav2_bringup_dir, "launch", "bringup_launch.py"])
+        ),
+        launch_arguments={
+            "use_sim_time": "True",
+            "slam": "False",
+            "autostart": "True",
+            "use_composition": "False",
+            "use_respawn": "False",
+            "params_file": PathJoinSubstitution([nav2_demo_dir, "config", "nav2_config.yaml"]),
+        }.items(),
+    )
+    
+    # Static map -> odom transform (since we don't have a map provider)
+    map_to_odom_tf = Node(
+        package="tf2_ros",
+        executable="static_transform_publisher",
+        arguments=["0", "0", "0", "0", "0", "0", "map", "odom"],
+        parameters=[{"use_sim_time": True}],
+        output="screen",
+    )
+    
     # RViz2 visualization (optional, controlled by launch parameter)
     rviz = Node(
         package="rviz2",
         executable="rviz2",
         arguments=[
-            "-d", PathJoinSubstitution([nav2_demo_dir, "config/config.rviz"])
+            "-d", PathJoinSubstitution([nav2_demo_dir, "config", "config.rviz"])
         ],
         parameters=[{"use_sim_time": True}],
         condition=IfCondition(LaunchConfiguration("rviz", default="true")),
@@ -83,11 +105,13 @@ def generate_launch_description():
         DeclareLaunchArgument(
             "rviz",
             default_value="true",
-            description="Start RViz2 visualization"
+            description="Start RViz2"
         ),
         
         gazebo_launch,
         kiss_icp_launch,
         ground_seg_launch,
+        map_to_odom_tf,
+        nav2_bringup,
         rviz,
     ])
