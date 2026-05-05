@@ -58,6 +58,8 @@ echo ""
 echo "Installing ROS package dependencies..."
 cd "$WORKSPACE"
 
+rosdep init || true  # Ignore if already initialized
+
 # Update rosdep
 rosdep update || true
 
@@ -69,6 +71,7 @@ echo "✓ Setup complete!"
 echo ""
 echo "Next steps:"
 echo "  1. cd $WORKSPACE"
-echo "  2. colcon build --packages-up-to nav2_ground_consistency_demo --cmake-args -DCMAKE_BUILD_TYPE=RELEASE"
-echo "  3. source install/setup.bash"
-echo "  4. ros2 launch nav2_ground_consistency_demo full_stack.launch.py"
+echo "  2. source /opt/ros/jazzy/setup.bash"
+echo "  3. colcon build --symlink-install --packages-up-to nav2_ground_consistency_demo --cmake-args -DCMAKE_BUILD_TYPE=RELEASE"
+echo "  4. source install/setup.bash"
+echo "  5. ros2 launch nav2_ground_consistency_demo full_stack.launch.py"
