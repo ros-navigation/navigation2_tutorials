@@ -83,10 +83,10 @@ def generate_launch_description():
     # Static map -> odom transform (since we don't have a map provider)
     map_to_odom_tf = Node(
         package="tf2_ros",
+        output="screen",
         executable="static_transform_publisher",
         arguments=["0", "0", "0", "0", "0", "0", "map", "odom"],
         parameters=[{"use_sim_time": True}],
-        output="screen",
     )
     
     # RViz2 visualization (optional, controlled by launch parameter)
