@@ -10,8 +10,6 @@ Panels:
         - /Non-Ground Points1/Topic1
         - /Non-Ground Points1/Autocompute Value Bounds1
         - /TF1/Tree1
-        - /Odometry1
-        - /Path1
       Splitter Ratio: 0.5
     Tree Height: 731
   - Class: rviz_common/Selection
@@ -240,7 +238,7 @@ Visualization Manager:
   Global Options:
     Background Color: 48; 48; 48
     Fixed Frame: odom
-    Frame Rate: 5
+    Frame Rate: 10
   Name: root
   Tools:
     - Class: rviz_default_plugins/Interact
