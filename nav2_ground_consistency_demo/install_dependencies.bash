@@ -1,71 +1,77 @@
 #!/bin/bash
-# Install all dependencies and clone repositories for nav2_ground_consistency_demo
+# Setup script for nav2_ground_consistency_demo tutorial
+#
+# Prerequisites:
+#   - ROS 2 Jazzy installed (see: https://docs.ros.org/en/jazzy/Installation.html)
+#   - Nav2 installed (see: https://docs.nav2.org/setup_guides/index.html)
+#   - vcstool installed: sudo apt-get install python3-vcstool
+#
+# This script will:
+#   1. Clone demo source code (if not already present)
+#   2. Import dependencies using vcstool and dependencies.repos
+#   3. Install ROS package dependencies using rosdep
+#   4. Prepare for building
 
 set -e  # Exit on error
 
-# Get workspace path from argument or use default
-WORKSPACE="${1:-$HOME/ros2_ws}"
+# Get workspace path from argument or use current directory
+WORKSPACE="${1:-.}"
 
-echo "Installing ROS 2 Jazzy dependencies for nav2_ground_consistency_demo..."
-echo "Workspace: $WORKSPACE"
-
-sudo apt-get update
-
-# Required packages
-echo "Installing required packages..."
-sudo apt-get install -y ros-jazzy-ros-gz-sim
-sudo apt-get install -y ros-jazzy-ros-gz-interfaces
-sudo apt-get install -y ros-jazzy-tf2-tools
-
-# Visualization
-echo "Installing visualization packages..."
-sudo apt-get install -y ros-jazzy-rviz2
-sudo apt-get install -y ros-jazzy-rviz-common
-
-# Navigation
-echo "Installing navigation packages..."
-sudo apt-get install -y ros-jazzy-nav2-bringup || true
-
-# Joystick support (optional, for teleop)
-echo "Installing joystick packages..."
-sudo apt-get install -y ros-jazzy-joy || true
-sudo apt-get install -y ros-jazzy-teleop-twist-joy || true
-sudo apt-get install -y ros-jazzy-teleop-twist-keyboard || true
-sudo apt-get install -y joystick || true
-
-# Clone required repositories
+echo "=========================================="
+echo "Setting up nav2_ground_consistency_demo"
+echo "=========================================="
 echo ""
-echo "Cloning required repositories..."
+echo "Workspace: $(cd "$WORKSPACE" && pwd)"
+echo ""
 
-mkdir -p "$WORKSPACE/src"
+# Check if we're in a ROS 2 environment
+if [ -z "$ROS_DISTRO" ]; then
+    echo "ERROR: ROS 2 environment not sourced"
+    echo "Please source your ROS 2 installation first:"
+    echo "  source /opt/ros/jazzy/setup.bash"
+    exit 1
+fi
+
+echo "ROS Distro: $ROS_DISTRO"
+echo ""
+
+# Check if vcstool is installed
+if ! command -v vcs &> /dev/null; then
+    echo "ERROR: vcstool not found"
+    echo "Install it with: sudo apt-get install python3-vcstool"
+    exit 1
+fi
+
+# Import dependencies from .repos file
+echo "Importing dependencies from dependencies.repos..."
 cd "$WORKSPACE/src"
 
-echo "  Cloning KISS-ICP..."
-git clone https://github.com/PRBonn/kiss-icp.git || echo "  (already exists)"
+if [ -f "navigation2_tutorials/nav2_ground_consistency_demo/dependencies.repos" ]; then
+    vcs import < navigation2_tutorials/nav2_ground_consistency_demo/dependencies.repos
+else
+    echo "ERROR: dependencies.repos not found"
+    echo "Make sure you're in a workspace with navigation2_tutorials cloned"
+    exit 1
+fi
 
-echo "  Cloning ground_segmentation..."
-git clone https://github.com/dfki-ric/ground_segmentation.git || echo "  (already exists)"
-
-echo "  Cloning ground_segmentation_ros2..."
-git clone https://github.com/dfki-ric/ground_segmentation_ros2.git || echo "  (already exists)"
-
-echo "  Cloning nav2_ground_consistency_costmap_plugin..."
-git clone https://github.com/dfki-ric/nav2_ground_consistency_costmap_plugin.git || echo "  (already exists)"
-
-# Initialize rosdep if needed
-echo "Setting up rosdep..."
-sudo rosdep init || true  # Ignore if already initialized
-rosdep update
-
-# Install workspace dependencies using rosdep
-echo "Installing workspace dependencies with rosdep..."
+echo ""
+echo "Installing ROS package dependencies..."
 cd "$WORKSPACE"
+
+rosdep init || true  # Ignore if already initialized
+
+# Update rosdep
+rosdep update || true
+
+# Install dependencies
 rosdep install --from-paths src --ignore-src -r -y || true
 
 echo ""
-echo "✓ All dependencies installed and repositories cloned!"
+echo "✓ Setup complete!"
 echo ""
 echo "Next steps:"
 echo "  1. cd $WORKSPACE"
-echo "  2. colcon build --packages-up-to nav2_ground_consistency_demo --cmake-args -DCMAKE_BUILD_TYPE=RELEASE"
-echo "  3. source install/setup.bash"
+echo "  2. source /opt/ros/jazzy/setup.bash"
+echo "  3. colcon build --symlink-install --packages-up-to nav2_ground_consistency_demo --cmake-args -DCMAKE_BUILD_TYPE=RELEASE"
+echo "  4. source install/setup.bash"
+echo "  5. ros2 launch nav2_ground_consistency_demo full_stack.launch.py 2>&1 | grep -v "SampleConsensus""

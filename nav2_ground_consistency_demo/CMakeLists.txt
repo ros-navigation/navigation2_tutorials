@@ -40,5 +40,11 @@ install(
   DESTINATION share/${PROJECT_NAME}/models
 )
 
+# Install behavior trees
+install(
+  DIRECTORY behavior_trees/
+  DESTINATION share/${PROJECT_NAME}/behavior_trees
+)
+
 # Ament package generation
 ament_package()

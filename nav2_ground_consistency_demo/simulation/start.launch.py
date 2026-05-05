@@ -74,7 +74,7 @@ def launch_setup(context, *args, **kwargs):
     executable='parameter_bridge',
     arguments=bridge_args,
     remappings=[
-      ('/model/husky/cmd_vel', '/husky/cmd_vel'),
+      ('/model/husky/cmd_vel', '/cmd_vel'),
       (f'/world/{world_file_name}/clock', '/clock'),
       (f'/world/{world_file_name}/model/husky/link/base_link/sensor/front_laser/scan/points', '/husky/scan/points'),
       (f'/world/{world_file_name}/model/husky/link/base_link/sensor/imu_sensor/imu', '/husky/imu')
@@ -90,6 +90,7 @@ def launch_setup(context, *args, **kwargs):
     package='tf2_ros',
     executable='static_transform_publisher',
     arguments=['0.0012', '0', '0.716', '0', '0', '0', 'husky/base_link', 'husky/base_link/front_laser'],
+    parameters=[{'use_sim_time': True}],
   )
   
   # Static transform publisher: husky/base_link -> husky/base_link/imu_sensor
@@ -98,41 +99,9 @@ def launch_setup(context, *args, **kwargs):
     package='tf2_ros',
     executable='static_transform_publisher',
     arguments=['0', '0', '0', '0', '0', '0', 'husky/base_link', 'husky/base_link/imu_sensor'],
+    parameters=[{'use_sim_time': True}],
   )
   
-  # Optional: Joystick support for teleop_twist_joy
-  if(IfCondition(LaunchConfiguration('use_joystick')).evaluate(context)):
-
-    joy_config_file = str(LaunchConfiguration('joy_config_file').perform(context))
-    if joy_config_file == "joy_config_file":
-      raise ValueError("Please set the joy_config_file when use_joystick is set to True!")
-
-    joy_config = load_yaml_file(joy_config_file)['joy']['ros__parameters'] 
-
-    joy_node = Node(
-      package='joy',
-      executable='joy_node',
-      name='joy',
-      output='both',
-      parameters=[joy_config] 
-    )
-
-    teleop_twist_config_file = str(LaunchConfiguration('teleop_twist_config_file').perform(context))
-    if teleop_twist_config_file == "teleop_twist_config_file":
-      raise ValueError("Please set the teleop_twist_config_file when use_joystick is set to True!")
-
-    teleop_twist_config = load_yaml_file(teleop_twist_config_file)
-
-    cmd_vel_topic_name = '/'+robot_name+'/cmd_vel'
-    teleop_twist_joy = Node(
-    package='teleop_twist_joy',
-    executable='teleop_node',
-    remappings=[('/cmd_vel', cmd_vel_topic_name)],
-    parameters=[teleop_twist_config]
-    )
-
-    return [gazebo_launch_description, ign_ros2_bridge, static_tf_front_laser, static_tf_imu, joy_node, teleop_twist_joy]   
-
   return [gazebo_launch_description, ign_ros2_bridge, static_tf_front_laser, static_tf_imu]   
   
 def generate_launch_description(): 
@@ -163,24 +132,6 @@ def generate_launch_description():
         "world_file_name",
         default_value="baylands_terrain",
         description="Gazebo world to load. Options: baylands_terrain"
-    ),
-        
-    DeclareLaunchArgument(
-        "use_joystick",
-        default_value="False",
-        description="Enable joystick control via teleop_twist_joy"
-    ),
-
-    DeclareLaunchArgument(
-        "joy_config_file",
-        default_value="joy_config_file",
-        description="Full path to joy_node config (required if use_joystick=True)"
-    ),
-
-    DeclareLaunchArgument(
-        "teleop_twist_config_file",
-        default_value="teleop_twist_config_file",
-        description="Full path to teleop_twist_joy config (required if use_joystick=True)"
     ),
 
     OpaqueFunction(function = launch_setup)

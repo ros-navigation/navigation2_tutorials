@@ -20,19 +20,32 @@
 
   <buildtool_depend>ament_cmake</buildtool_depend>
 
-  <!-- ROS 2 dependencies -->
-  <depend>ros_gz_sim</depend>
-  <depend>ros_gz_bridge</depend>
-  <depend>tf2_ros</depend>
-  <depend>nav2_bringup</depend>
-  <depend>nav2_ground_consistency_costmap_plugin</depend>
-  <depend>kiss_icp</depend>
-  <depend>ground_segmentation_ros2</depend>
+  <!-- Simulation -->
+  <exec_depend>ros_gz_sim</exec_depend>
+  <exec_depend>ros_gz_bridge</exec_depend>
+  <exec_depend>ros_gz_interfaces</exec_depend>
 
-  <!-- Optional dependencies for demo -->
-  <depend>joy</depend>
-  <depend>teleop_twist_joy</depend>
-  <depend>rviz2</depend>
+  <!-- Transform Library -->
+  <exec_depend>tf2_ros</exec_depend>
+  <exec_depend>tf2_tools</exec_depend>
+
+  <!-- Visualization -->
+  <exec_depend>rviz2</exec_depend>
+  <exec_depend>rviz_common</exec_depend>
+
+  <!-- Nav2 Core Stack -->
+  <exec_depend>nav2_planner</exec_depend>
+  <exec_depend>nav2_controller</exec_depend>
+  <exec_depend>nav2_behaviors</exec_depend>
+  <exec_depend>nav2_costmap_2d</exec_depend>
+  <exec_depend>nav2_bt_navigator</exec_depend>
+
+  <!-- Ground Consistency and Segmentation -->
+  <exec_depend>nav2_ground_consistency_costmap_plugin</exec_depend>
+  <exec_depend>ground_segmentation_ros2</exec_depend>
+
+  <!-- Odometry -->
+  <exec_depend>kiss_icp</exec_depend>
 
   <!-- Testing -->
   <test_depend>ament_cmake_pytest</test_depend>

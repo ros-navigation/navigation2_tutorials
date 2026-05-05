@@ -17,7 +17,7 @@
     <include>
       <uri>model://COSTAR_HUSKY_SENSOR_CONFIG_1</uri>
       <name>husky</name>
-      <pose>-220 -70 2 0 0 0</pose>
+      <pose>-220 -70 0.5 0 0 0</pose>
     </include>
 
     <!-- Gazebo plugin systems -->
