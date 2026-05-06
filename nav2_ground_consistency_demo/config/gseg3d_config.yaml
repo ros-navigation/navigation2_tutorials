@@ -54,7 +54,7 @@ ground_segmentation:
     centroidSearchRadius: 5.0
     
     # Optional: Use IMU for gravity direction (if available)
-    use_imu_orientation: true
+    use_imu_orientation: false
     
     # Max vertical deviation from fitted ground plane
     maxGroundHeightDeviation: 0.2

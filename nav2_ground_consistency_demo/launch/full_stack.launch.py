@@ -6,10 +6,9 @@ Usage:
 """
 
 from launch import LaunchDescription
-from launch.actions import IncludeLaunchDescription, DeclareLaunchArgument
-from launch.substitutions import LaunchConfiguration, PathJoinSubstitution
+from launch.actions import IncludeLaunchDescription
+from launch.substitutions import PathJoinSubstitution
 from launch.launch_description_sources import PythonLaunchDescriptionSource
-from launch.conditions import IfCondition
 from launch_ros.actions import Node
 from launch_ros.substitutions import FindPackageShare
 
@@ -24,7 +23,7 @@ def generate_launch_description():
     # Gazebo simulation launch (includes Husky robot and terrain)
     gazebo_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
-            PathJoinSubstitution([nav2_demo_dir, "simulation/start.launch.py"])
+            PathJoinSubstitution([nav2_demo_dir, "simulation", "start.launch.py"])
         ),
         launch_arguments={
             "world_file_name": "baylands_terrain",
@@ -57,7 +56,6 @@ def generate_launch_description():
         ),
         launch_arguments={
             "pointcloud_topic": "/husky/scan/points",
-            "imu_topic": "/husky/imu",
             "params_file": PathJoinSubstitution(
                 [nav2_demo_dir, "config/gseg3d_config.yaml"]
             ),
@@ -73,6 +71,7 @@ def generate_launch_description():
         launch_arguments={
             "use_sim_time": "True",
             "slam": "False",
+            "use_localization": "False",
             "autostart": "True",
             "use_composition": "False",
             "use_respawn": "False",
@@ -89,29 +88,21 @@ def generate_launch_description():
         parameters=[{"use_sim_time": True}],
     )
     
-    # RViz2 visualization (optional, controlled by launch parameter)
-    rviz = Node(
-        package="rviz2",
-        executable="rviz2",
-        arguments=[
-            "-d", PathJoinSubstitution([nav2_demo_dir, "config", "config.rviz"])
-        ],
-        parameters=[{"use_sim_time": True}],
-        condition=IfCondition(LaunchConfiguration("rviz", default="true")),
-        output="screen"
+    # RViz2 visualization from Nav2 bringup
+    rviz_launch = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(
+            PathJoinSubstitution([nav2_bringup_dir, "launch", "rviz_launch.py"])
+        ),
+        launch_arguments={
+            "use_sim_time": "True",
+        }.items()
     )
     
     return LaunchDescription([
-        DeclareLaunchArgument(
-            "rviz",
-            default_value="true",
-            description="Start RViz2"
-        ),
-        
         gazebo_launch,
         kiss_icp_launch,
         ground_seg_launch,
         map_to_odom_tf,
         nav2_bringup,
-        rviz,
+        rviz_launch,
     ])

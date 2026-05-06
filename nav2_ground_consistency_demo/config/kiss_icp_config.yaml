@@ -28,14 +28,14 @@ kiss_icp_node:
 
     adaptive_threshold:
       # Dynamic thresholding for registration convergence
-      initial_threshold: 2.0              # Starting correspondence threshold (meters)
+      initial_threshold: 1.5              # Starting correspondence threshold (meters)
                                          # Larger = faster but may lose accuracy
                                          # Smaller = slower but more accurate
-      min_motion_th: 0.1                  # Minimum motion threshold (meters)
+      min_motion_th: 0.05                 # Minimum motion threshold (meters)
 
     registration:
       # ICP registration parameters
-      max_num_iterations: 80              # Max iterations per scan (default 500, reduced for real-time)
+      max_num_iterations: 200             # Max iterations per scan (default 500, reduced for real-time)
                                          # Lower = faster but may not converge
                                          # Higher = more accurate but slower
       convergence_criterion: 0.0001       # Registration error threshold
