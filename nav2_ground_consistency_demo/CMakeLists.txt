@@ -3,9 +3,9 @@ project(nav2_ground_consistency_demo)
 
 find_package(ament_cmake REQUIRED)
 
-# Install launch files, configs, and simulation files
+# Install launch files, configs, and model files
 install(
-  DIRECTORY launch config simulation
+  DIRECTORY launch config models
   DESTINATION share/${PROJECT_NAME}
   PATTERN "__pycache__" EXCLUDE
   PATTERN "*.pyc" EXCLUDE

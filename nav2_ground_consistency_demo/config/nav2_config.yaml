@@ -88,7 +88,7 @@ local_costmap:
         plugin: "nav2_costmap_2d::InflationLayer"
         enabled: true
         cost_scaling_factor: 1.0
-        inflation_radius: 0.7
+        inflation_radius: 1.2
       
       always_send_full_costmap: false
 
