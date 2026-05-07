@@ -1,4 +1,4 @@
-# Ground Segmentation Parameters for nav2_ground_consistency_demo
+# Ground Segmentation Parameters for nav2_lidar_ground_segmentation_demo
 # Tuned for: Clearpath Husky + Velodyne VLP-16 in Gazebo
 # 
 # Tuning Guide:

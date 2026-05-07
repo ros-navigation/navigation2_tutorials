@@ -1,29 +1,29 @@
 """
-Nav2 navigation stack launch for nav2_ground_consistency_demo.
+Nav2 navigation stack launch for nav2_lidar_ground_segmentation_demo
 
 Usage:
-  ros2 launch nav2_ground_consistency_demo full_stack.launch.py
+  ros2 launch nav2_lidar_ground_segmentation_demo full_stack.launch.py
 """
 
 import os
 from ament_index_python.packages import get_package_share_directory
 
 from launch import LaunchDescription
-from launch.actions import IncludeLaunchDescription, DeclareLaunchArgument, OpaqueFunction, SetEnvironmentVariable
-from launch.substitutions import PathJoinSubstitution, LaunchConfiguration
+from launch.actions import IncludeLaunchDescription, SetEnvironmentVariable
+from launch.substitutions import PathJoinSubstitution
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch_ros.actions import Node
 from launch_ros.substitutions import FindPackageShare
 
-def gazebo_launch_setup(context, *args, **kwargs):
-    """Setup and launch Gazebo simulation with Husky robot and terrain."""
-    
-    world_file_name = str(LaunchConfiguration('world_file_name').perform(context))
-    pkg_share = get_package_share_directory('nav2_ground_consistency_demo')
-    
-    # Gazebo world and GUI config paths
-    world_sdf_path = os.path.join(pkg_share, 'models', world_file_name + '.sdf')
-    gui_config_path = os.path.join(pkg_share, 'config', 'gazebo_gui.config')
+DEMO_PKG_SHARE = get_package_share_directory('nav2_lidar_ground_segmentation_demo')
+WORLD_NAME = "baylands_terrain"
+
+def generate_gazebo_launch():
+    """Generate Gazebo simulation with Husky robot and terrain."""
+        
+    # Gazebo world and GUI config paths'
+    world_sdf_path = os.path.join(DEMO_PKG_SHARE, 'models', WORLD_NAME + '.sdf')
+    gui_config_path = os.path.join(DEMO_PKG_SHARE, 'config', 'gazebo_gui.config')
     
     # Construct Gazebo launch arguments
     ign_args = '-v 4 -r ' + world_sdf_path
@@ -47,8 +47,8 @@ def gazebo_launch_setup(context, *args, **kwargs):
     # ROS 2 <-> Gazebo bridge
     bridge_args = [
         '/model/husky/cmd_vel@geometry_msgs/msg/Twist@gz.msgs.Twist',
-        f'/world/{world_file_name}/model/husky/link/base_link/sensor/front_laser/scan/points@sensor_msgs/msg/PointCloud2@gz.msgs.PointCloudPacked',
-        f'/world/{world_file_name}/clock@rosgraph_msgs/msg/Clock@gz.msgs.Clock'
+        f'/world/{WORLD_NAME}/model/husky/link/base_link/sensor/front_laser/scan/points@sensor_msgs/msg/PointCloud2@gz.msgs.PointCloudPacked',
+        f'/world/{WORLD_NAME}/clock@rosgraph_msgs/msg/Clock@gz.msgs.Clock'
     ]
     
     ign_ros2_bridge = Node(
@@ -57,13 +57,15 @@ def gazebo_launch_setup(context, *args, **kwargs):
         arguments=bridge_args,
         remappings=[
             ('/model/husky/cmd_vel', '/cmd_vel'),
-            (f'/world/{world_file_name}/clock', '/clock'),
-            (f'/world/{world_file_name}/model/husky/link/base_link/sensor/front_laser/scan/points', '/husky/scan/points')
+            (f'/world/{WORLD_NAME}/clock', '/clock'),
+            (f'/world/{WORLD_NAME}/model/husky/link/base_link/sensor/front_laser/scan/points', '/husky/scan/points')
         ],
         output='both'
     )
     
     # Static transform: base_link -> front_laser
+    # We don't use tf from Gazebo because it interferes with kiss_icp's odometry frame associations. 
+    # Instead, we publish a static transform with the same parameters as the one in Gazebo.
     static_tf_front_laser = Node(
         package='tf2_ros',
         executable='static_transform_publisher',
@@ -77,16 +79,12 @@ def generate_launch_description():
     """Generate complete launch description."""
     
     # Get package directories
-    nav2_demo_dir = FindPackageShare("nav2_ground_consistency_demo")
     nav2_bringup_dir = FindPackageShare("nav2_bringup")
     kiss_icp_dir = FindPackageShare("kiss_icp")
     ground_seg_dir = FindPackageShare("ground_segmentation_ros2")
     
-    # Get package share for resource path
-    pkg_share = get_package_share_directory('nav2_ground_consistency_demo')
-    models_dir = os.path.join(pkg_share, 'models')
-    
     # Set Gazebo resource path
+    models_dir = os.path.join(DEMO_PKG_SHARE, 'models')
     set_gz_resource_path = SetEnvironmentVariable(
         'GZ_SIM_RESOURCE_PATH',
         models_dir + ':$GZ_SIM_RESOURCE_PATH'
@@ -104,7 +102,7 @@ def generate_launch_description():
             "invert_odom_tf": "False", 
             "visualize": "False",
             "config_file": PathJoinSubstitution(
-                [nav2_demo_dir, "config/kiss_icp_config.yaml"]
+                [DEMO_PKG_SHARE, "config/kiss_icp_config.yaml"]
             ),
             "use_sim_time": "True",
         }.items()
@@ -118,7 +116,7 @@ def generate_launch_description():
         launch_arguments={
             "pointcloud_topic": "/husky/scan/points",
             "params_file": PathJoinSubstitution(
-                [nav2_demo_dir, "config/gseg3d_config.yaml"]
+                [DEMO_PKG_SHARE, "config/gseg3d_config.yaml"]
             ),
             "use_sim_time": "True",
         }.items()
@@ -136,11 +134,12 @@ def generate_launch_description():
             "autostart": "True",
             "use_composition": "False",
             "use_respawn": "False",
-            "params_file": PathJoinSubstitution([nav2_demo_dir, "config", "nav2_config.yaml"]),
+            "params_file": PathJoinSubstitution([DEMO_PKG_SHARE, "config", "nav2_config.yaml"]),
         }.items(),
     )
     
     # Static map -> odom transform
+    # We don't use a mapper in the demo so provide a static transform between map and odom.
     map_to_odom_tf = Node(
         package="tf2_ros",
         output="screen",
@@ -162,13 +161,7 @@ def generate_launch_description():
     return LaunchDescription([
         set_gz_resource_path,
         
-        DeclareLaunchArgument(
-            "world_file_name",
-            default_value="baylands_terrain",
-            description="Gazebo world to load"
-        ),
-        
-        OpaqueFunction(function=gazebo_launch_setup),
+        *generate_gazebo_launch(),
         kiss_icp_launch,
         ground_seg_launch,
         map_to_odom_tf,

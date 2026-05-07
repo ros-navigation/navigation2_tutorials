@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.16)
-project(nav2_ground_consistency_demo)
+project(nav2_lidar_ground_segmentation_demo)
 
 find_package(ament_cmake REQUIRED)
 
