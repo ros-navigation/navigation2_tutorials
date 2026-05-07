@@ -1,0 +1,11 @@
+<root BTCPP_format="4" main_tree_to_execute="MainTree">
+  <BehaviorTree ID="MainTree">
+    <Sequence>
+      <DriveOnHeading dist_to_travel="0.2" speed="0.3" time_allowance="50"/>
+      <SetBladeState enable="true"/>
+      <DriveOnHeading dist_to_travel="3.0" speed="0.3" time_allowance="50"/>
+      <SetBladeState enable="false"/>
+      <SetCameraYaw target_yaw="180.0"/>
+    </Sequence>
+  </BehaviorTree>
+</root>
