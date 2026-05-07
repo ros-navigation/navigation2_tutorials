@@ -1,3 +1,36 @@
+# Nav2 Configuration for LiDAR Ground Segmentation Demo
+# ========================================================
+# 
+# Key customizations from Nav2 defaults:
+#
+# 1. Updated frame names to match Husky + Velodyne setup (e.g., robot_base_frame: husky/base_link)
+#
+# 2. controller_server: Regulated Pure Pursuit (RPP) instead of default MPPI
+#    - Parameters tuned for terrain: lookahead_dist=2.0, lookahead_time=3.0, use_velocity_scaled_lookahead_dist=true
+#    - Disabled turn on spot (use_rotate_to_heading: false)
+#    - velocity tuning: desired_linear_vel=0.35 m/s
+#      Reason: Reduced speed allows smoother terrain adaptation
+#      max_angular_accel=1.5 (lowered from default for gentler steering)
+#
+# 3. local_costmap: Ground Consistency Layer + Inflation Layer
+#    - Changed update/publish frequency to 10 Hz (matches LiDAR rate)
+#    - Changed resolution to 0.3m and size to 50x50m
+#    - Plugins: ["ground_consistency", "inflation_layer"]
+#    - Reason: Demo-specific - uses ground segmentation for terrain-aware costmap
+#    - Update frequency: 10 Hz (matches LiDAR publish rate)
+#
+# 4. global_costmap: Obstacle Layer with ground segmentation obstacles
+#    - Updated resolution to 0.3m and size to 100x100m  
+#
+# 5. collision_monitor: Relaxed timeouts
+#    - transform_tolerance: 0.5s, source_timeout: 1.0s
+#    - Reason: KISS-ICP odometry publishes at ~10Hz with timestamp jitter
+#
+# 6. robot dimensions: Husky footprint with external Dimensions (L X W), 990 x 698 
+#    - robot_height: 1.5m (approximate height with mounted LiDAR for height-based obstacle filtering)
+# 
+
+
 bt_navigator:
   ros__parameters:
     robot_base_frame: husky/base_link
