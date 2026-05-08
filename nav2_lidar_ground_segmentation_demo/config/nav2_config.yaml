@@ -8,6 +8,7 @@
 # 2. controller_server: Regulated Pure Pursuit (RPP) instead of default MPPI
 #    - Parameters tuned for terrain: lookahead_dist=2.0, lookahead_time=3.0, use_velocity_scaled_lookahead_dist=true
 #    - Disabled turn on spot (use_rotate_to_heading: false)
+#    - allow_reversing: true 
 #    - velocity tuning: desired_linear_vel=0.35 m/s
 #      Reason: Reduced speed allows smoother terrain adaptation
 #      max_angular_accel=1.5 (lowered from default for gentler steering)
@@ -57,6 +58,7 @@ controller_server:
       use_velocity_scaled_lookahead_dist: true
       use_rotate_to_heading: false
       max_angular_accel: 1.5
+      allow_reversing: true
       
 local_costmap:
   local_costmap:
