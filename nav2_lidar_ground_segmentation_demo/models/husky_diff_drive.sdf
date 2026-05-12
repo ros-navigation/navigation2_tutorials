@@ -12,9 +12,6 @@
 
       <topic>/model/husky/cmd_vel</topic>
 
-      <odom_topic>odom</odom_topic>
-      <tf_topic>tf</tf_topic>
-
       <left_joint>rear_left_wheel_joint</left_joint>
       <left_joint>front_left_wheel_joint</left_joint>
 

@@ -11,6 +11,10 @@ kiss_icp_node:
   ros__parameters:
     # NOTE: Launch arguments will override these ROS parameters if set
 
+    base_frame: "husky/base_link"
+    lidar_odom_frame: "odom"
+    invert_odom_tf: false
+    
     ####    Core KISS-ICP parameters    ####
 
     data:
