@@ -1,0 +1,17 @@
+repositories:
+  kiss_icp:
+    type: git
+    url: https://github.com/PRBonn/kiss-icp.git
+    version: main
+  ground_segmentation:
+    type: git
+    url: https://github.com/dfki-ric/ground_segmentation.git
+    version: master
+  ground_segmentation_ros2:
+    type: git
+    url: https://github.com/dfki-ric/ground_segmentation_ros2.git
+    version: rolling
+  nav2_ground_consistency_costmap_plugin:
+    type: git
+    url: https://github.com/dfki-ric/nav2_ground_consistency_costmap_plugin.git
+    version: rolling

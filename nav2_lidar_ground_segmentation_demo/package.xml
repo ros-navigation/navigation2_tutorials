@@ -1,0 +1,56 @@
+<?xml version="1.0"?>
+<?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
+<package format="3">
+  <name>nav2_lidar_ground_segmentation_demo</name>
+  <version>1.0.0</version>
+  <description>
+    Demo package for nav2_ground_consistency_costmap_plugin.
+    Provides Gazebo simulation with Husky robot equipped with Velodyne VLP-16 3D lidar
+    for testing and evaluating ground/obstacle classification in nav2 costmaps.
+  </description>
+
+  <maintainer email="haider_khan.lodhi@dfki.de">DFKI RIC</maintainer>
+  <author email="haider_khan.lodhi@dfki.de">DFKI RIC</author>
+
+  <license>BSD-3-Clause</license>
+
+  <url type="website">https://github.com/dfki-ric/nav2_ground_consistency_costmap_plugin</url>
+  <url type="repository">https://github.com/dfki-ric/nav2_ground_consistency_costmap_plugin</url>
+  <url type="bugtracker">https://github.com/dfki-ric/nav2_ground_consistency_costmap_plugin/issues</url>
+
+  <buildtool_depend>ament_cmake</buildtool_depend>
+
+  <!-- Simulation -->
+  <exec_depend>ros_gz_sim</exec_depend>
+  <exec_depend>ros_gz_bridge</exec_depend>
+  <exec_depend>ros_gz_interfaces</exec_depend>
+
+  <!-- Transform Library -->
+  <exec_depend>tf2_ros</exec_depend>
+  <exec_depend>tf2_tools</exec_depend>
+
+  <!-- Visualization -->
+  <exec_depend>rviz2</exec_depend>
+  <exec_depend>rviz_common</exec_depend>
+
+  <!-- Nav2 Core Stack -->
+  <exec_depend>nav2_planner</exec_depend>
+  <exec_depend>nav2_controller</exec_depend>
+  <exec_depend>nav2_behaviors</exec_depend>
+  <exec_depend>nav2_costmap_2d</exec_depend>
+  <exec_depend>nav2_bt_navigator</exec_depend>
+
+  <!-- Ground Consistency and Segmentation -->
+  <exec_depend>nav2_ground_consistency_costmap_plugin</exec_depend>
+  <exec_depend>ground_segmentation_ros2</exec_depend>
+
+  <!-- Odometry -->
+  <exec_depend>kiss_icp</exec_depend>
+
+  <!-- Testing -->
+  <test_depend>ament_cmake_pytest</test_depend>
+
+  <export>
+    <build_type>ament_cmake</build_type>
+  </export>
+</package>

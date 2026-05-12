@@ -1,0 +1,42 @@
+# KISS-ICP Configuration for nav2_lidar_ground_segmentation_demo
+# Tuned for: Clearpath Husky + Velodyne VLP-16 in Gazebo
+#
+# Key tuning parameters:
+# - max_range: Lidar max range (Velodyne VLP-16 = 30m)
+# - max_num_iterations: More = slower but more accurate (500 is default for exploration)
+# - initial_threshold: Start value for adaptive threshold (higher = faster but less robust)
+# - max_points_per_voxel: Reduce for speed, increase for accuracy
+
+kiss_icp_node:
+  ros__parameters:
+    # NOTE: Launch arguments will override these ROS parameters if set
+
+    ####    Core KISS-ICP parameters    ####
+
+    data:
+      # Point cloud preprocessing
+      deskew: true                        # Remove motion distortion from rotating lidar
+      max_range: 30.0                     # Velodyne VLP-16 max range
+      min_range: 0.0                      # Minimum range threshold
+
+    mapping:
+      # Voxel grid parameters for the local map
+      # voxel_size is auto-calculated as max_range / 100.0 (= 0.3m here)
+      # Uncomment to override:
+      # voxel_size: 0.3
+      max_points_per_voxel: 20            # Points per grid cell (higher = better detail, slower)
+
+    adaptive_threshold:
+      # Dynamic thresholding for registration convergence
+      initial_threshold: 1.5              # Starting correspondence threshold (meters)
+                                         # Larger = faster but may lose accuracy
+                                         # Smaller = slower but more accurate
+      min_motion_th: 0.05                 # Minimum motion threshold (meters)
+
+    registration:
+      # ICP registration parameters
+      max_num_iterations: 200             # Max iterations per scan (default 500, reduced for real-time)
+                                         # Lower = faster but may not converge
+                                         # Higher = more accurate but slower
+      convergence_criterion: 0.0001       # Registration error threshold
+      max_num_threads: 0                  # 0 = auto-detect CPU cores
