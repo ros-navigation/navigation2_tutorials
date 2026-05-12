@@ -51,15 +51,12 @@ def generate_gazebo_launch():
         f'/world/{WORLD_NAME}/clock@rosgraph_msgs/msg/Clock@gz.msgs.Clock'
     ]
     
+    bridge_config_path = os.path.join(DEMO_PKG_SHARE, 'config', 'bridge_config.yaml')
+
     ign_ros2_bridge = Node(
         package='ros_gz_bridge',
         executable='parameter_bridge',
-        arguments=bridge_args,
-        remappings=[
-            ('/model/husky/cmd_vel', '/cmd_vel'),
-            (f'/world/{WORLD_NAME}/clock', '/clock'),
-            (f'/world/{WORLD_NAME}/model/husky/link/base_link/sensor/front_laser/scan/points', '/husky/scan/points')
-        ],
+        parameters=[{'config_file': bridge_config_path}],
         output='both'
     )
     
@@ -69,8 +66,17 @@ def generate_gazebo_launch():
     static_tf_front_laser = Node(
         package='tf2_ros',
         executable='static_transform_publisher',
-        arguments=['0.0012', '0', '0.716', '0', '0', '0', 'husky/base_link', 'husky/base_link/front_laser'],
-        parameters=[{'use_sim_time': True}],
+        arguments=[
+            '--x', '0.0012',
+            '--y', '0',
+            '--z', '0.716',
+            '--yaw', '0',
+            '--pitch', '0',
+            '--roll', '0',
+            '--frame-id', 'husky/base_link',
+            '--child-frame-id', 'husky/base_link/front_laser'
+        ],
+        parameters=[{'use_sim_time': True}]
     )
     
     return [gazebo_launch, ign_ros2_bridge, static_tf_front_laser]
@@ -141,11 +147,21 @@ def generate_launch_description():
     # Static map -> odom transform
     # We don't use a mapper in the demo so provide a static transform between map and odom.
     map_to_odom_tf = Node(
-        package="tf2_ros",
-        output="screen",
-        executable="static_transform_publisher",
-        arguments=["0", "0", "0", "0", "0", "0", "map", "odom"],
-        parameters=[{"use_sim_time": True}],
+            package="tf2_ros",
+            output="screen",
+            executable="static_transform_publisher",
+            arguments=[
+                '--x', '0',
+                '--y', '0',
+                '--z', '0',
+                '--qx', '0',
+                '--qy', '0',
+                '--qz', '0',
+                '--qw', '1',
+                '--frame-id', 'map',
+                '--child-frame-id', 'odom'
+            ],
+            parameters=[{'use_sim_time': True}],
     )
     
     # RViz2 visualization
