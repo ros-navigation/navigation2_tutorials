@@ -36,7 +36,7 @@ bt_navigator:
   ros__parameters:
     robot_base_frame: husky/base_link
     odom_topic: kiss/odometry
-    wait_for_service_timeout: 2
+    wait_for_service_timeout: 5
       
 controller_server:
   ros__parameters:
