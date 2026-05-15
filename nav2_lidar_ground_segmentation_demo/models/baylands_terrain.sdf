@@ -1,0 +1,39 @@
+<sdf version='1.10'>
+  <world name='baylands_terrain'>
+    <physics name='1ms' type='ode'>
+      <max_step_size>0.004</max_step_size>
+      <real_time_factor>1</real_time_factor>
+    </physics>
+    
+    <scene>
+      <ambient>1 1 1 1</ambient>
+      <background>1 1 1 1</background>
+      <grid>false</grid>
+      <origin_visual>false</origin_visual>
+      <shadows>true</shadows>
+    </scene>
+
+    <!-- Baylands environment -->
+    <include>
+      <uri>https://fuel.gazebosim.org/1.0/OpenRobotics/models/baylands</uri>
+    </include>
+
+    <!-- Husky with DiffDrive plugin -->
+    <include>
+      <uri>husky_diff_drive.sdf</uri>
+      <pose>-220 -70 0.5 0 0 0</pose>
+    </include>
+
+    <plugin name='gz::sim::systems::UserCommands' filename='gz-sim-user-commands-system'/>
+    <plugin name='gz::sim::systems::SceneBroadcaster' filename='gz-sim-scene-broadcaster-system'/>
+    <plugin name='gz::sim::systems::Contact' filename='gz-sim-contact-system'/>
+    <plugin name='gz::sim::systems::Imu' filename='gz-sim-imu-system'/>
+    <plugin name='gz::sim::systems::Sensors' filename='gz-sim-sensors-system'>
+      <render_engine>ogre2</render_engine>
+    </plugin>
+    
+    <gravity>0 0 -9.8</gravity>
+    <magnetic_field>6e-06 2.3e-05 -4.2e-05</magnetic_field>
+    <atmosphere type='adiabatic'/>
+  </world>
+</sdf>
