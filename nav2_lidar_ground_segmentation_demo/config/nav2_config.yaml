@@ -1,0 +1,199 @@
+# Nav2 Configuration for LiDAR Ground Segmentation Demo
+# ========================================================
+# 
+# Key customizations from Nav2 defaults:
+#
+# 1. Updated frame names to match Husky + Velodyne setup (e.g., robot_base_frame: husky/base_link)
+#
+# 2. bt_navigator: Configured to use KISS-ICP odometry topic (kiss/odometry) instead of default amcl pose
+#    - Increaed wait_for_service_timeout to 5s to allow KISS-ICP to initialize and publish odometry
+#
+# 3. controller_server: Regulated Pure Pursuit (RPP) instead of default MPPI
+#    - Use kiss/odometry for odometry instead of amcl pose
+#    - Parameters tuned for terrain: lookahead_dist=2.0, lookahead_time=3.0, use_velocity_scaled_lookahead_dist=true
+#    - Disabled turn on spot (use_rotate_to_heading: false)
+#    - allow_reversing: true 
+#    - velocity tuning: desired_linear_vel=0.35 m/s
+#      Reason: Reduced speed allows smoother terrain adaptation
+#      max_angular_accel=1.5 (lowered from default for gentler steering)
+#
+# 4. local_costmap: Ground Consistency Layer + Inflation Layer
+#    - Changed update/publish frequency to 10 Hz (matches LiDAR rate)
+#    - Changed resolution to 0.3m and size to 50x50m
+#    - Plugins: ["ground_consistency", "inflation_layer"]
+#    - Reason: Demo-specific - uses ground segmentation for terrain-aware costmap
+#    - Update frequency: 10 Hz (matches LiDAR publish rate)
+#
+# 5. global_costmap: Obstacle Layer with ground segmentation obstacles
+#    - Updated resolution to 0.3m and size to 100x100m  
+#
+# 6. collision_monitor: Relaxed timeouts
+#    - transform_tolerance: 0.5s, source_timeout: 1.0s
+#    - Reason: KISS-ICP odometry publishes at ~10Hz with timestamp jitter
+#
+# 7. robot dimensions: Husky footprint with external Dimensions (L X W), 990 x 698 
+#    - robot_height: 1.5m (approximate height with mounted LiDAR for height-based obstacle filtering)
+# 
+
+
+bt_navigator:
+  ros__parameters:
+    robot_base_frame: husky/base_link
+    odom_topic: kiss/odometry
+
+controller_server:
+  ros__parameters:
+    progress_checker_plugins: ["progress_checker"]
+    goal_checker_plugins: ["goal_checker"]
+    controller_plugins: ["FollowPath"]
+    odom_topic: kiss/odometry
+
+    progress_checker:
+      plugin: "nav2_controller::SimpleProgressChecker"
+
+    goal_checker:
+      plugin: "nav2_controller::SimpleGoalChecker"
+
+    FollowPath:
+      plugin: "nav2_regulated_pure_pursuit_controller::RegulatedPurePursuitController"
+      desired_linear_vel: 0.35
+      lookahead_dist: 2.0
+      min_lookahead_dist: 1.0
+      max_lookahead_dist: 2.5
+      lookahead_time: 3.0
+      use_velocity_scaled_lookahead_dist: true
+      use_rotate_to_heading: false
+      max_angular_accel: 1.5
+      allow_reversing: true
+      
+local_costmap:
+  local_costmap:
+    ros__parameters:
+      update_frequency: 10.0
+      publish_frequency: 10.0
+      global_frame: odom
+      robot_base_frame: husky/base_link
+      rolling_window: true
+      width: 50
+      height: 50
+      resolution: 0.3
+      footprint: "[[0.495, 0.349], [0.495, -0.349], [-0.495, -0.349], [-0.495, 0.349]]"
+      plugins: ["ground_consistency", "inflation_layer"]
+      
+      ground_consistency:
+        plugin: "nav2_ground_consistency_costmap_plugin::GroundConsistencyLayer"
+        ground_points_topic: /ground_segmentation/ground_points
+        nonground_points_topic: /ground_segmentation/obstacle_points
+        tf_timeout: 0.1
+        min_clearance: 0.1
+        robot_height: 1.5
+        maximum_height_filter: 2.0
+        ground_inc: 1.0
+        nonground_inc: 1.5
+        nonground_decay: 0.93
+        ground_decay: 0.80
+        max_score: 5000.0
+        nonground_occ_thresh: 6.0
+        nonground_prob_thresh: 0.75
+        enable_kpi_logging: true
+        discretize_costs: true
+        max_data_range: 50.0
+        ground_neighbor_search_cells: 0
+      
+      inflation_layer:
+        plugin: "nav2_costmap_2d::InflationLayer"
+        enabled: true
+        cost_scaling_factor: 1.0
+        inflation_radius: 1.2
+      
+      always_send_full_costmap: false
+
+global_costmap:
+  global_costmap:
+    ros__parameters:
+      update_frequency: 1.0
+      publish_frequency: 1.0
+      global_frame: map
+      robot_base_frame: husky/base_link
+      resolution: 0.3
+      track_unknown_space: false
+      rolling_window: false
+      width: 100
+      height: 100
+      origin_x: -50.0
+      origin_y: -50.0
+      footprint: "[[0.495, 0.349], [0.495, -0.349], [-0.495, -0.349], [-0.495, 0.349]]"
+      plugins: ["obstacle_layer"]
+      obstacle_layer:
+        plugin: "nav2_costmap_2d::ObstacleLayer"
+        observation_sources: pointcloud
+        pointcloud:
+          topic: /ground_segmentation/obstacle_points
+          max_obstacle_height: 2.0
+          clearing: true
+          marking: true
+          data_type: "PointCloud2"
+      always_send_full_costmap: false
+
+behavior_server:
+  ros__parameters:
+    cycle_frequency: 10.0
+    behavior_plugins: ["backup", "drive_on_heading", "wait", "spin"]
+    backup:
+      plugin: "nav2_behaviors::BackUp"
+    drive_on_heading:
+      plugin: "nav2_behaviors::DriveOnHeading"
+    wait:
+      plugin: "nav2_behaviors::Wait"
+    spin:
+      plugin: "nav2_behaviors::Spin"
+    local_frame: odom
+    global_frame: map
+    robot_base_frame: husky/base_link
+    transform_tolerance: 0.1
+    simulate_ahead_time: 2.0
+    max_rotational_vel: 1.0
+    min_rotational_vel: 0.4
+    rotational_acc_lim: 3.2
+
+collision_monitor:
+  ros__parameters:
+    base_frame_id: "husky/base_link"
+    odom_frame_id: "odom"
+    cmd_vel_in_topic: "cmd_vel_smoothed"
+    cmd_vel_out_topic: "cmd_vel"
+    state_topic: "collision_monitor_state"
+    transform_tolerance: 0.5
+    source_timeout: 1.0
+    base_shift_correction: True
+    stop_pub_timeout: 2.0
+    polygons: ["HuskyFootprint"]
+    HuskyFootprint:
+      type: "polygon"
+      action_type: "stop"
+      points: "[[-0.5, -0.34], [-0.5, 0.34], [0.5, 0.34], [0.5, -0.34]]"
+      visualize: True
+      enabled: True
+    observation_sources: ["pointcloud"]
+    pointcloud:
+      type: "pointcloud"
+      topic: "/ground_segmentation/obstacle_points"
+      min_height: 0.1
+      max_height: 1.5
+      enabled: True
+
+docking_server:
+  ros__parameters:
+    base_frame: "husky/base_link"
+    fixed_frame: "odom"
+    dock_plugins: ['simple_charging_dock']
+    simple_charging_dock:
+      plugin: 'opennav_docking::SimpleChargingDock'
+      use_external_detection_pose: true
+      use_battery_status: false
+      use_stall_detection: false
+    controller:
+      use_collision_detection: true
+      projection_time: 5.0
+      simulation_step: 0.1
+      dock_collision_threshold: 0.3

@@ -1,0 +1,29 @@
+<?xml version="1.0" ?>
+<sdf version="1.9">
+  <model name="husky">
+
+    <include merge="true">
+      <uri>https://fuel.gazebosim.org/1.0/OpenRobotics/models/COSTAR_HUSKY_SENSOR_CONFIG_1</uri>
+    </include>
+
+    <plugin
+      name="gz::sim::systems::DiffDrive"
+      filename="gz-sim-diff-drive-system">
+
+      <topic>/model/husky/cmd_vel</topic>
+
+      <left_joint>rear_left_wheel_joint</left_joint>
+      <left_joint>front_left_wheel_joint</left_joint>
+
+      <right_joint>rear_right_wheel_joint</right_joint>
+      <right_joint>front_right_wheel_joint</right_joint>
+
+      <wheel_separation>0.5708</wheel_separation>
+      <wheel_radius>0.1651</wheel_radius>
+
+      <odom_publish_frequency>0</odom_publish_frequency>
+
+    </plugin>
+
+  </model>
+</sdf>
