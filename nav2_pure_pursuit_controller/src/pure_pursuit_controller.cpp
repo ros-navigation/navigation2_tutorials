@@ -49,7 +49,7 @@ Iter min_by(Iter begin, Iter end, Getter getCompareVal)
 
 void PurePursuitController::configure(
   const nav2::LifecycleNode::WeakPtr & parent,
-  std::string name, const std::shared_ptr<tf2_ros::Buffer> tf,
+  std::string name, const nav2::TransformBuffer::SharedPtr tf,
   const std::shared_ptr<nav2_costmap_2d::Costmap2DROS> costmap_ros)
 {
   node_ = parent;
@@ -78,7 +78,7 @@ void PurePursuitController::configure(
   node->get_parameter(plugin_name_ + ".desired_linear_vel", desired_linear_vel_);
   node->get_parameter(plugin_name_ + ".lookahead_dist", lookahead_dist_);
   node->get_parameter(plugin_name_ + ".max_angular_vel", max_angular_vel_);
-  double transform_tolerance;
+  double transform_tolerance = 0.1;
   node->get_parameter(plugin_name_ + ".transform_tolerance", transform_tolerance);
   transform_tolerance_ = rclcpp::Duration::from_seconds(transform_tolerance);
 }

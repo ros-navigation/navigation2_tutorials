@@ -18,6 +18,7 @@
 #include "pluginlib/class_list_macros.hpp"
 #include "nav2_ros_common/lifecycle_node.hpp"
 #include "nav2_ros_common/node_utils.hpp"
+#include "nav2_ros_common/tf2_factories.hpp"
 
 namespace nav2_pure_pursuit_controller
 {
@@ -30,7 +31,7 @@ public:
 
   void configure(
     const nav2::LifecycleNode::WeakPtr & parent,
-    std::string name, const std::shared_ptr<tf2_ros::Buffer> tf,
+    std::string name, const nav2::TransformBuffer::SharedPtr tf,
     const std::shared_ptr<nav2_costmap_2d::Costmap2DROS> costmap_ros) override;
 
 
@@ -50,7 +51,7 @@ public:
 
 protected:
   nav2::LifecycleNode::WeakPtr node_;
-  std::shared_ptr<tf2_ros::Buffer> tf_;
+  nav2::TransformBuffer::SharedPtr tf_;
   std::string plugin_name_;
   std::shared_ptr<nav2_costmap_2d::Costmap2DROS> costmap_ros_;
   rclcpp::Logger logger_ {rclcpp::get_logger("PurePursuitController")};
