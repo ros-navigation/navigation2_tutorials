@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.5)
+cmake_minimum_required(VERSION 3.20)
 project(nav2_gradient_costmap_plugin)
 
 set(lib_name ${PROJECT_NAME}_core)

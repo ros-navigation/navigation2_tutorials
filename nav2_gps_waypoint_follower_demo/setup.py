@@ -25,7 +25,9 @@ setup(
     maintainer_email='pedro.gonzalez@eia.edu.co',
     description='Demo package for following GPS waypoints with nav2',
     license='MIT',
-    tests_require=['pytest'],
+    extras_require={
+        'test': ['pytest'],
+    },
     entry_points={
         'console_scripts': [
             'logged_waypoint_follower = nav2_gps_waypoint_follower_demo.logged_waypoint_follower:main',

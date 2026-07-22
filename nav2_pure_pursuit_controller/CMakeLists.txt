@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.5)
+cmake_minimum_required(VERSION 3.20)
 project(nav2_pure_pursuit_controller)
 
 find_package(ament_cmake REQUIRED)
