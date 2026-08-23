@@ -137,8 +137,8 @@
         <axis>
           <xyz>0 1 0</xyz>
           <limit>
-            <lower>-inf</lower>
-            <upper>inf</upper>
+            <lower>-1e16</lower>
+            <upper>1e16</upper>
           </limit>
         </axis>
       </joint>
