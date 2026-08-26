@@ -1,0 +1,5 @@
+<library path="nav2_operations_navigator">
+  <class type="nav2_operations_navigator::NavigateWithOperations" base_class_type="nav2_core::NavigatorBase">
+    <description>Navigator plugin for following a path with operations at poses</description>
+  </class>
+</library>

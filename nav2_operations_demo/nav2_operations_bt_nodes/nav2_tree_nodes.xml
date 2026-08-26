@@ -1,0 +1,14 @@
+<root BTCPP_format="4">
+  <TreeNodesModel>
+    <Action ID="SetBladeState">
+      <input_port name="enable" type="bool" default="true">true to enable blade, false to disable</input_port>
+      <input_port name="server_name" type="std::string" default="blade_server">Action server name</input_port>
+      <input_port name="server_timeout" type="double" default="10">Timeout for server connection (s)</input_port>
+    </Action>
+    <Action ID="SetCameraYaw">
+      <input_port name="target_yaw" type="float" default="0.0">Target camera yaw in degrees</input_port>
+      <input_port name="server_name" type="std::string" default="camera_server">Action server name</input_port>
+      <input_port name="server_timeout" type="double" default="10">Timeout for server connection (s)</input_port>
+    </Action>
+  </TreeNodesModel>
+</root>
