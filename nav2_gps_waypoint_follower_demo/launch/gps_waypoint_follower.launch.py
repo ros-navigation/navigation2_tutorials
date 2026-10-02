@@ -61,12 +61,17 @@ def generate_launch_description():
 
     navigation2_cmd = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
-            os.path.join(bringup_dir, "launch", "navigation_launch.py")
+            os.path.join(bringup_dir, "launch", "bringup_launch.py")
         ),
         launch_arguments={
             "use_sim_time": "True",
             "params_file": configured_params,
             "autostart": "True",
+            # robot_localization provides map->odom, so skip AMCL and map server
+            "use_localization": "False",
+            "use_keepout_zones": "False",
+            "use_speed_zones": "False",
+            "use_composition": "False",
         }.items(),
     )
 

@@ -77,13 +77,18 @@ def generate_launch_description():
     # Nav2 navigation stack
     nav2_bringup = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
-            os.path.join(launch_dir, 'navigation_launch.py')
+            os.path.join(launch_dir, 'bringup_launch.py')
         ),
         launch_arguments={
             'use_sim_time': use_sim_time,
             'autostart': autostart,
             'params_file': params_file,
             'log_level': log_level,
+            # The static map->odom transform above replaces localization
+            'use_localization': 'False',
+            'use_keepout_zones': 'False',
+            'use_speed_zones': 'False',
+            'use_composition': 'False',
         }.items(),
     )
 
