@@ -88,7 +88,6 @@ def generate_launch_description():
             'use_localization': 'False',
             'use_keepout_zones': 'False',
             'use_speed_zones': 'False',
-            'use_composition': 'False',
         }.items(),
     )
 
