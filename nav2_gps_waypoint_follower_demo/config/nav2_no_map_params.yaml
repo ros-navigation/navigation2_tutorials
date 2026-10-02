@@ -82,7 +82,9 @@ controller_server:
       transform_tolerance: 0.1
       temperature: 0.3
       gamma: 0.015
-      motion_model: "DiffDrive"
+      motion_model: "diff_drive"
+      diff_drive:
+        plugin: "mppi::DiffDriveMotionModel"
       visualize: true
       regenerate_noises: true
       TrajectoryVisualizer:

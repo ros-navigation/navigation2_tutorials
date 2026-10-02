@@ -34,18 +34,23 @@ def generate_launch_description():
             launch.actions.DeclareLaunchArgument(
                 "output_location", default_value="~/dual_ekf_navsat_example_debug.txt"
             ),
-            launch_ros.actions.Node(
+            # ekf_node is a lifecycle node, so autostart configures and activates it
+            launch_ros.actions.LifecycleNode(
                 package="robot_localization",
                 executable="ekf_node",
                 name="ekf_filter_node_odom",
+                namespace="",
+                autostart=True,
                 output="screen",
                 parameters=[rl_params_file, {"use_sim_time": True}],
                 remappings=[("odometry/filtered", "odometry/local")],
             ),
-            launch_ros.actions.Node(
+            launch_ros.actions.LifecycleNode(
                 package="robot_localization",
                 executable="ekf_node",
                 name="ekf_filter_node_map",
+                namespace="",
+                autostart=True,
                 output="screen",
                 parameters=[rl_params_file, {"use_sim_time": True}],
                 remappings=[("odometry/filtered", "odometry/global")],
