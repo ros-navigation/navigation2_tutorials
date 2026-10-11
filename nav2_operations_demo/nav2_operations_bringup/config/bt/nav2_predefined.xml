@@ -1,0 +1,158 @@
+<root BTCPP_format="4" main_tree_to_execute="MainTree">
+  <BehaviorTree ID="MainTree">
+    <Sequence>
+
+
+      <DriveOnHeading dist_to_travel="0.2" speed="2.3" time_allowance="50"/>
+
+      <ExecuteOperation operations="blade;bool;true"/>
+
+      <DriveOnHeading dist_to_travel="3.0" speed="2.3" time_allowance="50"/>
+
+      <ExecuteOperation operations="blade;bool;false"/>
+
+      <DriveOnHeading dist_to_travel="0.2" speed="2.3" time_allowance="50"/>
+
+
+
+      <Spin spin_dist="1.57" time_allowance="50"/>
+
+      <DriveOnHeading dist_to_travel="0.2" speed="2.3" time_allowance="50"/>
+
+      <ExecuteOperation operations="blade;bool;true"/>
+
+      <DriveOnHeading dist_to_travel="3.0" speed="2.3" time_allowance="50"/>
+
+      <ExecuteOperation operations="blade;bool;false"/>
+
+      <DriveOnHeading dist_to_travel="0.2" speed="2.3" time_allowance="50"/>
+
+      <!-- N -->
+      <Spin spin_dist="-2.355" time_allowance="50"/>
+
+      <DriveOnHeading dist_to_travel="0.2" speed="2.3" time_allowance="50"/>
+
+      <ExecuteOperation operations="blade;bool;true"/>
+
+      <DriveOnHeading dist_to_travel="3.0" speed="2.3" time_allowance="50"/>
+
+      <ExecuteOperation operations="blade;bool;false"/>
+
+      <DriveOnHeading dist_to_travel="0.2" speed="2.3" time_allowance="50"/>
+
+
+      <Spin spin_dist="2.355" time_allowance="50"/>
+
+      <DriveOnHeading dist_to_travel="0.2" speed="2.3" time_allowance="50"/>
+
+      <ExecuteOperation operations="blade;bool;true"/>
+
+      <DriveOnHeading dist_to_travel="3.0" speed="2.3" time_allowance="50"/>
+
+      <ExecuteOperation operations="blade;bool;false"/>
+
+      <DriveOnHeading dist_to_travel="0.2" speed="2.3" time_allowance="50"/>
+
+
+      <Spin spin_dist="3.14" time_allowance="50"/>
+
+      <DriveOnHeading dist_to_travel="0.2" speed="2.3" time_allowance="50"/>
+
+      <ExecuteOperation operations="blade;bool;true"/>
+
+      <DriveOnHeading dist_to_travel="3.0" speed="2.3" time_allowance="50"/>
+
+      <ExecuteOperation operations="blade;bool;false"/>
+
+      <DriveOnHeading dist_to_travel="0.2" speed="2.3" time_allowance="50"/>
+
+      <!-- A -->
+      <Spin spin_dist="2.355" time_allowance="50"/>
+
+      <DriveOnHeading dist_to_travel="0.2" speed="2.3" time_allowance="50"/>
+
+      <ExecuteOperation operations="blade;bool;true"/>
+
+      <DriveOnHeading dist_to_travel="3.0" speed="2.3" time_allowance="50"/>
+
+      <ExecuteOperation operations="blade;bool;false"/>
+
+      <DriveOnHeading dist_to_travel="0.2" speed="2.3" time_allowance="50"/>
+
+
+      <Spin spin_dist="-1.57" time_allowance="50"/>
+
+      <DriveOnHeading dist_to_travel="0.2" speed="2.3" time_allowance="50"/>
+
+      <ExecuteOperation operations="blade;bool;true"/>
+
+      <DriveOnHeading dist_to_travel="3.0" speed="2.3" time_allowance="50"/>
+
+      <ExecuteOperation operations="blade;bool;false"/>
+
+      <DriveOnHeading dist_to_travel="0.2" speed="2.3" time_allowance="50"/>
+
+
+      <!-- V -->
+      <Spin spin_dist="0.785" time_allowance="50"/>
+
+      <DriveOnHeading dist_to_travel="0.2" speed="2.3" time_allowance="50"/>
+
+      <ExecuteOperation operations="blade;bool;true"/>
+
+      <DriveOnHeading dist_to_travel="3.0" speed="2.3" time_allowance="50"/>
+
+      <ExecuteOperation operations="blade;bool;false"/>
+
+      <DriveOnHeading dist_to_travel="0.2" speed="2.3" time_allowance="50"/>
+
+
+      <DriveOnHeading dist_to_travel="0.2" speed="2.3" time_allowance="50"/>
+
+      <Spin spin_dist="2.355" time_allowance="50"/>
+
+      <DriveOnHeading dist_to_travel="0.2" speed="2.3" time_allowance="50"/>
+
+      <ExecuteOperation operations="blade;bool;true"/>
+
+      <DriveOnHeading dist_to_travel="3.0" speed="2.3" time_allowance="50"/>
+
+      <ExecuteOperation operations="blade;bool;false"/>
+
+      <DriveOnHeading dist_to_travel="0.2" speed="2.3" time_allowance="50"/>
+
+
+      <Spin spin_dist="3.14" time_allowance="50"/>
+
+      <DriveOnHeading dist_to_travel="0.2" speed="2.3" time_allowance="50"/>
+
+      <ExecuteOperation operations="blade;bool;true"/>
+
+      <DriveOnHeading dist_to_travel="3.0" speed="2.3" time_allowance="50"/>
+
+      <ExecuteOperation operations="blade;bool;false"/>
+
+      <DriveOnHeading dist_to_travel="0.2" speed="2.3" time_allowance="50"/>
+
+
+      <Spin spin_dist="1.57" time_allowance="50"/>
+
+      <DriveOnHeading dist_to_travel="0.2" speed="2.3" time_allowance="50"/>
+
+      <ExecuteOperation operations="blade;bool;true"/>
+
+      <DriveOnHeading dist_to_travel="3.0" speed="2.3" time_allowance="50"/>
+
+      <ExecuteOperation operations="blade;bool;false"/>
+
+      <DriveOnHeading dist_to_travel="0.2" speed="2.3" time_allowance="50"/>
+
+
+
+      <ExecuteOperation operations="camera;float;180.0"/>
+
+      
+
+    </Sequence>
+  </BehaviorTree>
+</root>

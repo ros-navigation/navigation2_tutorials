@@ -1,0 +1,7 @@
+string behavior_tree
+nav_msgs/Path path
+---
+uint16 error_code
+---
+builtin_interfaces/Duration navigation_time
+uint32 path_poses_count
